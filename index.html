@@ -2762,7 +2762,7 @@ function rewardFor(game,win,stars){
   return win?70+10*stars+15*i:20+3*game.maxHeld;
 }
 function showRoundClear(C){
-  Music.stinger(true);
+  Music.stinger(true);setTimeout(()=>{if(G===C)Music.band(true);},900);
   const b=C.board,i=C.idx,n=C.rounds.length,r=C.round;
   save.roundProg[b.id]=r+1;save.dust+=20;persist();
   $('res-eyebrow').textContent=`Round ${r+1} of ${n} cleared`;
