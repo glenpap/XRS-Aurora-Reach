@@ -127,6 +127,9 @@ p{line-height:1.55;margin:0}
 .center{text-align:center}
 
 .hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+.mute-btn{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 60px);width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:rgba(10,8,30,.7);display:grid;place-items:center;pointer-events:auto;z-index:3;padding:0}
+.mute-btn svg{width:18px;height:18px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mute-btn.off{border-color:rgba(255,155,133,.6)}.mute-btn.off svg{stroke:#ff9b85}
 .topbar{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 10px;display:flex;align-items:center;gap:10px;pointer-events:auto;background:linear-gradient(rgba(10,8,30,.9),rgba(10,8,30,0))}
 .icon-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);display:grid;place-items:center;flex:0 0 auto}
 .icon-btn span{display:block;width:13px;height:15px;border-left:4px solid var(--ink);border-right:4px solid var(--ink);border-radius:1px}
@@ -276,6 +279,7 @@ p{line-height:1.55;margin:0}
 </div>
 
 <div id="hud-lane" class="hud" hidden>
+  <button class="mute-btn" data-mute aria-label="Mute"></button>
   <div class="topbar" id="lane-top">
     <button class="icon-btn" id="lane-menu" aria-label="Pause"><span></span></button>
     <div class="side">
@@ -304,6 +308,7 @@ p{line-height:1.55;margin:0}
 </div>
 
 <div id="hud-conq" class="hud" hidden>
+  <button class="mute-btn" data-mute aria-label="Mute"></button>
   <div class="topbar" id="conq-top">
     <button class="icon-btn" id="conq-menu" aria-label="Pause"><span></span></button>
     <div class="conq-title">
@@ -603,7 +608,7 @@ const SONGS={
   conquest:{bpm:80,kick:'x.......x.......',bass:'x.......x.......',arp:'x..x..x.x..x..x.',arpInst:'marimba',arpOct:12,arpVol:.05,pad:true}
 };
 const BAND_TRACK={src:'theme.mp3',title:'Monster',url:'https://youtu.be/C-QQMWOeU18'};
-const BOARD_TRACKS={highlands:{title:'In Response',url:'https://youtu.be/_Djhtj_8LJ0'},squall:{title:'Full Circle',url:'https://youtu.be/o88o8eSWSw8'},hailstone:{title:'Meteor',url:'https://youtu.be/Ckv01XpW8X0'}};/* optional titles, e.g. citadel:'Song Name' . Files are named track-<stop id>.mp3 */
+const BOARD_TRACKS={highlands:{title:'In Response',url:'https://youtu.be/_Djhtj_8LJ0'},citadel:{title:'Crutch',url:'https://youtu.be/Ok9vMZldZ4g'},squall:{title:'Full Circle',url:'https://youtu.be/o88o8eSWSw8'},hailstone:{title:'Meteor',url:'https://youtu.be/Ckv01XpW8X0'}};/* optional titles, e.g. citadel:'Song Name' . Files are named track-<stop id>.mp3 */
 const Band={els:{},failed:{},cur:null,want:null,battle:false,
   get(src){if(this.failed[src])return null;let a=this.els[src];
     if(!a){a=new Audio();a.preload='auto';a.loop=true;a.volume=0;a.ok=false;
@@ -1528,7 +1533,10 @@ function cycleMusic(){Snd.init();Music.init();
   toast(save.musicOff?'Music off':save.soundtrack==='game'?'Game music: calm synth tunes':'Band music: real X-Ray Star songs where available');}
 function nowPlayingInfo(){const c=Band.cur;if(!c||c.paused||save.musicOff||save.soundtrack==='game')return null;const f=c.src.split('/').pop();if(f===BAND_TRACK.src)return BAND_TRACK;const id=(f.match(/^track-(.+)\.mp3$/)||[])[1];return id&&BOARD_TRACKS[id]&&BOARD_TRACKS[id].url?BOARD_TRACKS[id]:null;}
 function npPause(){const e=$('np-pause');if(!e)return;const n=nowPlayingInfo();e.hidden=!n;if(n){e.href=n.url;$('np-pause-title').textContent=n.title;}}
+const SPK='<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke="none"/>';
 function syncAudioBtns(){npPause();
+  document.querySelectorAll('[data-mute]').forEach(b=>{b.classList.toggle('off',!!save.muted);b.setAttribute('aria-label',save.muted?'Unmute':'Mute');b.style.color=save.muted?'#ff9b85':'#efeaff';
+    b.innerHTML='<svg viewBox="0 0 24 24">'+SPK+(save.muted?'<path d="M16 9l5 6M21 9l-5 6"/>':'<path d="M16 9.5a4 4 0 0 1 0 5M18.5 7a7.5 7.5 0 0 1 0 10"/>')+'</svg>';});
   [['btn-music','btn-sound'],['pause-music','pause-sound']].forEach(([m,sn])=>{const bm=$(m),bs=$(sn);if(!bm)return;bm.textContent=musicLabel();bm.setAttribute('aria-pressed',!save.musicOff);bs.textContent=save.muted?'Sound off':'Sound on';bs.setAttribute('aria-pressed',!save.muted);});}
 /* ---------- daily gig & fan mail ---------- */
 const dayKey=d=>{d=d||new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
@@ -1667,7 +1675,7 @@ function openBrief(i){
 let G=null,paused=false;
 let lastOpts={};
 function startBoard(i,opts){
-  opts=opts||{};lastOpts=opts;
+  opts=opts||{};lastOpts=opts;syncAudioBtns();
   const b=BOARDS[i];briefIdx=i;fx=[];victory=null;paused=false;setTheme(b.theme);Snd.startMusic(b.theme,b.mode==='lane'?b.id:'conquest','track-'+b.id+'.mp3');
   if(b.mode==='lane'){show('hud-lane');G=makeLane(b,i,{daily:opts.daily});}else{show('hud-conq');G=makeConq(b,i);}
   if(opts.daily){const tw=TWISTS.find(t=>t.id===opts.daily);if(tw)setTimeout(()=>toast(`Tonight's Gig · ${tw.name}: ${tw.desc}`),300);}
@@ -2821,6 +2829,7 @@ cv.addEventListener('pointerdown',e=>{
 cv.addEventListener('pointermove',e=>{if(G&&G.kind==='lane'&&e.pointerType==='mouse')G.hover=laneToWorld(G,e.clientX,e.clientY);});
 cv.addEventListener('pointerleave',()=>{if(G&&G.kind==='lane')G.hover=null;});
 document.addEventListener('keydown',e=>{
+  if(e.key==='m'||e.key==='M'){toggleMute();return;}
   if(!G)return;
   if(e.key==='Escape'){paused?resume():pause();return;}
   if(G.kind==='lane'&&!paused&&/^[1-4]$/.test(e.key))selectCard(+e.key-1);
@@ -2844,6 +2853,8 @@ $('tempo-std').addEventListener('click',()=>{save.tempo='standard';persist();ren
 $('btn-music').addEventListener('click',cycleMusic);
 $('pause-music').addEventListener('click',cycleMusic);
 $('btn-sound').addEventListener('click',()=>{Snd.init();Snd.setMuted(!save.muted);syncAudioBtns();Snd.tick();});
+function toggleMute(){Snd.init();Snd.setMuted(!save.muted);syncAudioBtns();if(!save.muted)Snd.tick();toast(save.muted?'Sound muted':'Sound on');}
+document.querySelectorAll('[data-mute]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();toggleMute();}));
 $('pause-sound').addEventListener('click',()=>{Snd.init();Snd.setMuted(!save.muted);syncAudioBtns();Snd.tick();});
 $('btn-backstage').addEventListener('click',()=>{Snd.tick();goBackstage();});
 $('dust-map').addEventListener('click',()=>{Snd.tick();goBackstage();});
