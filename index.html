@@ -608,7 +608,7 @@ const SONGS={
   conquest:{bpm:80,kick:'x.......x.......',bass:'x.......x.......',arp:'x..x..x.x..x..x.',arpInst:'marimba',arpOct:12,arpVol:.05,pad:true}
 };
 const BAND_TRACK={src:'theme.mp3',title:'Monster',url:'https://youtu.be/C-QQMWOeU18'};
-const BOARD_TRACKS={highlands:{title:'In Response',url:'https://youtu.be/_Djhtj_8LJ0'},citadel:{title:'Crutch',url:'https://youtu.be/Ok9vMZldZ4g'},squall:{title:'Full Circle',url:'https://youtu.be/o88o8eSWSw8'},hailstone:{title:'Meteor',url:'https://youtu.be/Ckv01XpW8X0'}};/* optional titles, e.g. citadel:'Song Name' . Files are named track-<stop id>.mp3 */
+const BOARD_TRACKS={highlands:{title:'In Response',url:'https://youtu.be/_Djhtj_8LJ0'},citadel:{title:'Crutch',url:'https://youtu.be/Ok9vMZldZ4g'},spires:{title:'Ordinary',url:'https://youtu.be/rCaVCtPy9l0'},squall:{title:'Full Circle',url:'https://youtu.be/o88o8eSWSw8'},hailstone:{title:'Meteor',url:'https://youtu.be/Ckv01XpW8X0'}};/* optional titles, e.g. citadel:'Song Name' . Files are named track-<stop id>.mp3 */
 const Band={els:{},failed:{},cur:null,want:null,battle:false,
   get(src){if(this.failed[src])return null;let a=this.els[src];
     if(!a){a=new Audio();a.preload='auto';a.loop=true;a.volume=0;a.ok=false;
