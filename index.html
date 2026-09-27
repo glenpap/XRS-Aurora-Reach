@@ -221,7 +221,7 @@ p{line-height:1.55;margin:0}
       </div>
       <div class="seg"><button id="btn-sound" aria-pressed="true">Sound on</button><button id="btn-music" aria-pressed="true">Music on</button></div>
     </div>
-    <a class="now-playing" id="now-playing" href="#" target="_blank" rel="noopener" hidden><span class="np-eq" aria-hidden="true"><i></i><i></i><i></i></span><span>Now playing: <b>X-Ray Star &middot; &ldquo;<span id="np-title"></span>&rdquo;</b></span><span class="np-cta">Listen on Spotify &rarr;</span></a>
+    <a class="now-playing" id="now-playing" href="#" target="_blank" rel="noopener" hidden><span class="np-eq" aria-hidden="true"><i></i><i></i><i></i></span><span>Now playing: <b>X-Ray Star &middot; &ldquo;<span id="np-title"></span>&rdquo;</b></span><span class="np-cta">Watch the video &rarr;</span></a>
     <div class="stops" id="stops"></div>
     <button class="text-btn" id="btn-openall">Open every stop</button>
     <div class="links" id="links-map"></div>
@@ -579,7 +579,7 @@ const SONGS={
     lead:'1...5...4.3.2...1...7...5.......1...5...6...8...7...6.5.4.3.2...'},
   conquest:{bpm:80,kick:'x.......x.......',bass:'x.......x.......',arp:'x..x..x.x..x..x.',arpInst:'marimba',arpOct:12,arpVol:.05,pad:true}
 };
-const BAND_TRACK={src:'theme.mp3',title:'Monster'};
+const BAND_TRACK={src:'theme.mp3',title:'Monster',url:'https://youtu.be/C-QQMWOeU18'};
 const Band={el:null,ok:false,want:false,fadeT:null,
   init(){if(this.el||this.failed)return;const a=new Audio();a.preload='auto';a.loop=true;a.volume=0;
     a.addEventListener('canplaythrough',()=>{if(this.ok)return;this.ok=true;npChip();if(this.want)Music.play('title');},{once:true});
@@ -1390,7 +1390,7 @@ function renderLinks(id,label){
   });
 }
 function isOpen(i){return save.allOpen||i+1<=save.unlocked;}
-function npChip(){const e=$('now-playing');if(!e)return;const sp=LINKS.find(l=>/spotify/.test(l.url));e.href=sp?sp.url:'#';$('np-title').textContent=BAND_TRACK.title;e.hidden=!Band.ok;}
+function npChip(){const e=$('now-playing');if(!e)return;e.href=BAND_TRACK.url;$('np-title').textContent=BAND_TRACK.title;e.hidden=!Band.ok;}
 function renderMap(){npChip();
   $('dust-map').textContent='✦ '+save.dust;
   const list=$('stops');list.innerHTML='';
