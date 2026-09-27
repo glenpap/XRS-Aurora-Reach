@@ -91,7 +91,7 @@ p{line-height:1.55;margin:0}
 .text-btn{background:none;border:0;color:var(--muted);font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center}
 .text-btn:hover{color:var(--ink)}
 
-.upg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.upg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .upg{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
 .upg-top{display:flex;gap:10px;align-items:center}
 .upg-top img{width:54px;height:54px;flex:0 0 54px;border-radius:12px;background:linear-gradient(180deg,#2f2766,#1b1740);border:1px solid rgba(245,213,140,.25)}
@@ -102,6 +102,12 @@ p{line-height:1.55;margin:0}
 .upg-pips i.on{background:var(--aurora)}
 .upg-stats{font-size:12px;color:var(--muted);line-height:1.45;min-height:34px;font-variant-numeric:tabular-nums}
 .upg-stats b{color:var(--ink);font-weight:800}
+.track{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding-top:8px;border-top:1px solid var(--line)}
+.track-head{display:flex;align-items:center;gap:8px}
+.track-name{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;min-width:92px}
+.track-stat{grid-column:1;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.track-stat b{color:var(--ink)}
+.track button{grid-column:2;grid-row:1 / span 2;margin:0!important;min-width:66px}
 .upg button{margin-top:auto;border-radius:10px;border:1px solid rgba(245,213,140,.5);background:rgba(245,213,140,.14);color:var(--gold);font-weight:900;font-size:13px;padding:8px}
 .upg button:disabled{opacity:.4;border-color:var(--line);color:var(--muted);background:transparent}
 
@@ -195,7 +201,7 @@ p{line-height:1.55;margin:0}
     <div class="map-head">
       <div>
         <div class="eyebrow">The tour route</div>
-        <h2>Five stops to wake the realm</h2>
+        <h2>Seven stops to wake the realm</h2>
       </div>
       <div class="bar">
         <button class="dust" id="dust-map" aria-label="Spend Stardust backstage">✦ 0</button>
@@ -227,7 +233,7 @@ p{line-height:1.55;margin:0}
         <button class="btn" id="back-done">Tour route</button>
       </div>
     </div>
-    <p class="muted" style="font-size:14px">Earn Stardust from every show, win or lose. Each level makes a card 15% tougher and stronger. Later stops hit harder, so upgrades matter more as you go.</p>
+    <p class="muted" style="font-size:14px">Earn Stardust from every show, win or lose, and choose where it goes. Power makes a card hit 15% harder. Toughness gives it 15% more HP. Castles get Walls and Cannons. Later stops hit harder, so upgrades matter more as you go.</p>
     <div class="upg-grid" id="upg-grid"></div>
   </div>
 </div>
@@ -357,7 +363,7 @@ let nid=1;
 
 /* ================= save ================= */
 const SAVE_KEY='xrs_aurora_reach_v1';
-const save={unlocked:1,stars:{},tempo:'chill',muted:false,dust:0,lv:{},stageLv:1,allOpen:false,roundProg:{}};
+const save={unlocked:1,stars:{},tempo:'chill',muted:false,dust:0,lv:{},stageLv:1,allOpen:false,roundProg:{},up:null};
 try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&typeof s==='object')Object.assign(save,s);}catch(e){}
 if(!save.lv||typeof save.lv!=='object')save.lv={};
 if(!save.roundProg||typeof save.roundProg!=='object')save.roundProg={};
@@ -378,16 +384,20 @@ const FOES={
 const BOARDS=[
   {id:'citadel',mode:'lane',name:'The Glass Label Citadel',foe:'industry',theme:'reach',diff:0,
    blurb:'The Static Syndicate has sealed the valley\'s songs inside glass contracts. Break their offices open and let the music drift free.'},
-  {id:'highlands',mode:'conquest',name:'Thunderhead Highlands',foe:'storm',theme:'storm',map:0,rounds:[2,3,0],diff:0,
-   blurb:'The Storm Court has rained out every stage on the mountain road. Light the islands back up and roll the clouds off the peaks.'},
   {id:'squall',mode:'lane',name:'Squall Coast Crossing',foe:'storm',theme:'storm',diff:1,
    blurb:'The coast road is the only way to the next show, and the Storm Court is sitting right on it. Push through the squall.'},
-  {id:'archipelago',mode:'conquest',name:'The Algorithm Archipelago',foe:'industry',theme:'isles',map:1,rounds:[4,1],diff:1,
-   blurb:'The Syndicate\'s algorithm decides which islands get heard. Win them back one castle at a time. It starts ahead of you.'},
-  {id:'throne',mode:'lane',name:'The Hush Throne',foe:'hush',theme:'hush',diff:2,
+  {id:'highlands',mode:'conquest',bonus:true,name:'Thunderhead Highlands',foe:'storm',theme:'storm',map:0,rounds:[2,3],diff:0,
+   blurb:'A bonus stop. The Storm Court has rained out the little stages on the mountain road. Light the islands back up and roll the clouds off the peaks.'},
+  {id:'spires',mode:'lane',name:'The Streaming Spires',foe:'industry',theme:'isles',diff:2,
+   blurb:'High above the clouds, the Syndicate\'s streaming towers pay out in fractions of a cent. Topple them and give the songs back their worth.'},
+  {id:'hailstone',mode:'lane',name:'Hailstone Pass',foe:'storm',theme:'storm',diff:2,
+   blurb:'The last mountain pass before the edge of the Reach. The Storm Court has thrown every cloud it has at the road.'},
+  {id:'archipelago',mode:'conquest',bonus:true,name:'The Algorithm Archipelago',foe:'industry',theme:'isles',map:1,rounds:[4,1],diff:1,
+   blurb:'A bonus stop. The Syndicate\'s algorithm decides which islands get heard. Win them back one castle at a time.'},
+  {id:'throne',mode:'lane',name:'The Hush Throne',foe:'hush',theme:'hush',diff:3,
    blurb:'At the edge of the Reach, the Syndicate and the Storm Court have joined forces around the Hush itself. Play the show of your life.'}
 ];
-const ROMAN=['I','II','III','IV','V'];
+const ROMAN=['I','II','III','IV','V','VI','VII'];
 
 const CARDS={
   roadie:{name:'Giraffe Roadie',cost:2,kind:'troop',count:1,hp:360,dmg:80,spd:1.7,range:.8,sight:5.5,atk:.9,r:.38,h:1.95,desc:'A laid-back giraffe hauling gear. Quick, cheap, headbutts hard.'},
@@ -412,6 +422,14 @@ const PAL={
   storm:{glow:'#8fd3e8',shot:'#cfefff',acc:'#bfe8ff'}
 };
 const UPG_COST=[0,60,120,200,300];
+const TRACK_COST=[0,35,70,120,180];
+if(!save.up||typeof save.up!=='object'){save.up={};for(const k in save.lv){const v=+save.lv[k]||1;save.up[k]={p:v,h:v};}const sl=+save.stageLv||1;save.up.castle={p:sl,h:sl};}
+const upOf=t=>{const u=save.up[t]||{};return {p:clamp(u.p||1,1,5),h:clamp(u.h||1,1,5)};};
+const castleMul=k=>1+.1*(upOf('castle')[k]-1);
+const CARD_UNLOCK={comet:'citadel',cat:'squall'};
+const owned=t=>!CARD_UNLOCK[t]||!!save.stars[CARD_UNLOCK[t]]||save.allOpen;
+function unlockAfter(i){let j=i+1;while(j<BOARDS.length&&BOARDS[j].bonus)j++;save.unlocked=Math.max(save.unlocked,Math.min(BOARDS.length,j+1));}
+save.unlocked=1;BOARDS.forEach((b,i)=>{if(save.stars[b.id]&&!b.bonus)unlockAfter(i);});
 const MAX_LV=5;
 const lvOf=t=>clamp(save.lv[t]||1,1,MAX_LV);
 const cardMul=lv=>1+.15*(lv-1);
@@ -1217,11 +1235,11 @@ function renderMap(){
   BOARDS.forEach((b,i)=>{
     const locked=!isOpen(i),st=save.stars[b.id]||0;
     const el=document.createElement('button');el.className='stop';el.disabled=locked;
-    el.innerHTML=`<span class="stop-n">${ROMAN[i]}</span><span class="stop-body"><span class="stop-name">${b.name}</span><span class="stop-meta"><span class="chip ${b.mode}">${b.mode==='lane'?'Lane battle':'Island conquest'}</span>${locked?'Win the stop before this one':'vs '+FOES[b.foe].name}</span></span><span class="stars">${starsHTML(st)}</span>`;
+    el.innerHTML=`<span class="stop-n">${ROMAN[i]}</span><span class="stop-body"><span class="stop-name">${b.name}</span><span class="stop-meta"><span class="chip ${b.mode}">${b.mode==='lane'?'Lane battle':'Bonus \u00B7 Island conquest'}</span>${locked?'Win the stop before this one':'vs '+FOES[b.foe].name}</span></span><span class="stars">${starsHTML(st)}</span>`;
     el.addEventListener('click',()=>{Snd.tick();openBrief(i);});
     list.appendChild(el);
   });
-  $('btn-openall').hidden=save.allOpen||save.unlocked>=BOARDS.length;
+  $('btn-openall').hidden=save.allOpen||BOARDS.every((b,i)=>isOpen(i));
   $('tempo-chill').setAttribute('aria-pressed',save.tempo==='chill');
   $('tempo-std').setAttribute('aria-pressed',save.tempo!=='chill');
   $('btn-sound').setAttribute('aria-pressed',!save.muted);$('btn-sound').textContent=save.muted?'Sound off':'Sound on';
@@ -1254,26 +1272,38 @@ function statLine(type,lv){
   if(c.kind==='spell')return `Damage <b>${Math.round(c.dmg*m)}</b>`;
   return `HP <b>${Math.round(c.hp*m)}</b> · Hit <b>${Math.round(c.dmg*m)}</b>`;
 }
+function trackDefs(id){
+  const pct=lv=>cardMul(lv);
+  if(id==='chord')return [{k:'p',name:'Power',label:'Damage',val:lv=>Math.round(CHORD_DMG*pct(lv))}];
+  if(id==='castle')return [{k:'h',name:'Walls',label:'Castle HP',val:lv=>Math.round(1500*(1+.1*(lv-1)))},{k:'p',name:'Cannons',label:'Castle hit',val:lv=>Math.round(50*(1+.1*(lv-1)))}];
+  const c=CARDS[id];
+  if(c.kind==='spell')return [{k:'p',name:'Power',label:'Damage',val:lv=>Math.round(c.dmg*pct(lv))}];
+  return [{k:'p',name:'Power',label:'Hit',val:lv=>Math.round(c.dmg*pct(lv))},{k:'h',name:'Toughness',label:'HP',val:lv=>Math.round(c.hp*pct(lv))}];
+}
 function renderBackstage(){
-  $('dust-back').textContent='✦ '+save.dust;
+  $('dust-back').textContent='\u2726 '+save.dust;
   const grid=$('upg-grid');grid.innerHTML='';
-  const items=CARD_ORDER.map(t=>({id:t,name:CARDS[t].name,img:cardIcon(t),lv:lvOf(t)})).concat([{id:'chord',name:'Power Chord',img:chordIcon(),lv:lvOf('chord')},{id:'stages',name:'Castles & Stages',img:castleIcon(),lv:clamp(save.stageLv||1,1,MAX_LV)}]);
+  const items=CARD_ORDER.map(t=>({id:t,name:CARDS[t].name,img:cardIcon(t)})).concat([{id:'chord',name:'Power Chord',img:chordIcon()},{id:'castle',name:'Castles & Stages',img:castleIcon()}]);
   items.forEach(it=>{
     const d=document.createElement('div');d.className='upg';
-    const max=it.lv>=MAX_LV,cost=max?0:UPG_COST[it.lv];
-    let stats;
-    if(it.id==='stages'){const m=1+.1*(it.lv-1),m2=1+.1*it.lv;stats=`Castle HP <b>${Math.round(1500*m)}</b>${max?'':' → '+Math.round(1500*m2)}<br>Island glow speed <b>+${Math.round((it.lv-1)*10)}%</b>`;}
-    else stats=statLine(it.id,it.lv)+(max?'':`<br>Next: ${statLine(it.id,it.lv+1)}`);
-    let pips='';for(let i=1;i<=MAX_LV;i++)pips+=`<i class="${i<=it.lv?'on':''}"></i>`;
-    d.innerHTML=`<div class="upg-top"><img alt="" src="${it.img}"><div><div class="upg-name">${it.name}</div><div class="upg-lv">Level ${it.lv}</div><div class="upg-pips">${pips}</div></div></div><div class="upg-stats">${stats}</div>`;
-    const b=document.createElement('button');
-    b.textContent=max?'Max level':`Upgrade · ✦ ${cost}`;b.disabled=max||save.dust<cost;
-    b.addEventListener('click',()=>{
-      if(max||save.dust<cost)return;save.dust-=cost;
-      if(it.id==='stages')save.stageLv=it.lv+1;else save.lv[it.id]=it.lv+1;
-      persist();Snd.init();Snd.chime([4,6,8,11],.1,.05);renderBackstage();
+    const locked=!!CARDS[it.id]&&!owned(it.id),u=upOf(it.id),n=(u.p-1)+(it.id==='chord'?0:(u.h-1));
+    d.innerHTML=`<div class="upg-top"><img alt="" src="${it.img}"${locked?' style="opacity:.3"':''}><div><div class="upg-name">${it.name}</div><div class="upg-lv">${locked?'Not in the band yet':n?n+' upgrade'+(n>1?'s':''):'No upgrades yet'}</div></div></div>`;
+    if(locked){const pdiv=document.createElement('div');pdiv.className='upg-stats';pdiv.textContent=`Joins the band when you win ${BOARDS.find(b=>b.id===CARD_UNLOCK[it.id]).name}.`;d.appendChild(pdiv);grid.appendChild(d);return;}
+    trackDefs(it.id).forEach(tr=>{
+      const lv=u[tr.k],max=lv>=MAX_LV,cost=max?0:TRACK_COST[lv];
+      let pips='';for(let i=1;i<=MAX_LV;i++)pips+=`<i class="${i<=lv?'on':''}"></i>`;
+      const row=document.createElement('div');row.className='track';
+      row.innerHTML=`<div class="track-head"><span class="track-name">${tr.name}</span><span class="upg-pips">${pips}</span></div><div class="track-stat">${tr.label} <b>${tr.val(lv)}</b>${max?'':' \u2192 '+tr.val(lv+1)}</div>`;
+      const b=document.createElement('button');b.textContent=max?'Max':`\u2726 ${cost}`;b.disabled=max||save.dust<cost;
+      b.setAttribute('aria-label',max?`${it.name} ${tr.name} maxed`:`Upgrade ${it.name} ${tr.name} for ${cost} Stardust`);
+      b.addEventListener('click',()=>{
+        if(max||save.dust<cost)return;save.dust-=cost;
+        const cur=upOf(it.id);cur[tr.k]=lv+1;save.up[it.id]=cur;
+        persist();Snd.init();Snd.chime([4,6,8,11],.1,.05);renderBackstage();
+      });
+      row.appendChild(b);d.appendChild(row);
     });
-    d.appendChild(b);grid.appendChild(d);
+    grid.appendChild(d);
   });
 }
 function goBackstage(){renderBackstage();show('scr-back');}
@@ -1282,7 +1312,7 @@ let briefIdx=0;
 function openBrief(i){
   briefIdx=i;const b=BOARDS[i];
   const rn=b.rounds?b.rounds.length:1,rp=(save.roundProg[b.id]||0);
-  $('brief-eyebrow').textContent=`Tour stop ${ROMAN[i]} \u00B7 ${b.mode==='lane'?'Lane battle':`Island conquest \u00B7 ${rn} rounds`}`+(rp?` \u00B7 resume round ${rp+1}`:'');
+  $('brief-eyebrow').textContent=`Tour stop ${ROMAN[i]} \u00B7 ${b.mode==='lane'?'Lane battle':`Bonus island conquest \u00B7 ${rn} rounds`}`+(rp?` \u00B7 resume round ${rp+1}`:'');
   $('brief-name').textContent=b.name;
   $('brief-foe').textContent=`Facing ${FOES[b.foe].name}, ${FOES[b.foe].who}.`;
   $('brief-blurb').textContent=b.blurb;
@@ -1293,7 +1323,7 @@ function openBrief(i){
   ]:[
     'Tap one of your golden castles, then tap any island to send the band\'s light there.',
     'Arrive with more light than an island holds and it joins you. A \u2713 Take badge shows islands you can capture right now. Use Send All for big pushes.',
-    'Beacons shoot down light flying past them. Tap a selected castle\'s Level up button to make it glow faster.'
+    'Your band\'s upgrades make your islands glow faster here. Bonus stops are optional: skip ahead any time.'
   ];
   $('brief-how').innerHTML=how.map((h,n)=>`<li><b>${n+1}</b><span>${h}</span></li>`).join('');
   show(['scr-map','scr-brief']);
@@ -1310,33 +1340,33 @@ function gameResize(){if(!G)return;if(G.kind==='lane')laneResize(G);else conqRes
 
 /* ================= LANE MODE ================= */
 const AW=18,AH=32,RIVER=16,BR=[3.5,14.5],PAD=.6,VIS=1.35,AIRY=.95*1.35,BODY=.6*1.35;
-const ENEMY_TOWER=[{p:[1050,40],k:[2000,48]},{p:[1300,46],k:[2300,53]},{p:[1500,52],k:[2600,58]}];
+const ENEMY_TOWER=[{p:[1050,40],k:[2000,48]},{p:[1200,44],k:[2200,51]},{p:[1350,48],k:[2400,55]},{p:[1500,52],k:[2600,58]}];
 function mkTower(team,king,x,y,skin,hp,dmg){return {id:nid++,team,isTower:true,isBuilding:true,king,x,y,r:king?1.5:1.2,hp,maxHp:hp,range:king?7:7.2,dmg,atk:king?1:.8,atkT:0,active:!king,alive:true,air:false,deploy:0,skin,wob:0,deadT:0,anim:0};}
-function mkUnit(team,type,x,y,skin,mul,sim){const c=CARDS[type];return {fxOn:!sim,id:nid++,team,type,skin,c,x,y,hp:c.hp*mul,maxHp:c.hp*mul,dmg:c.dmg*mul,atkT:c.atk*.5,target:null,retarget:0,deploy:1,alive:true,air:!!c.air,isBuilding:c.kind==='building',moving:false,wob:0,walk:rand(0,6),anim:0,range:(type==='golem'&&skin!=='band')?1:c.range,ranged:!!c.proj&&!(type==='golem'&&skin!=='band'),flip:team===1?1:-1,face:team===1?0:Math.PI};}
+function mkUnit(team,type,x,y,skin,mul,sim){const c=CARDS[type];return {fxOn:!sim,id:nid++,team,type,skin,c,x,y,hp:c.hp*mul.h,maxHp:c.hp*mul.h,dmg:c.dmg*mul.d,atkT:c.atk*.5,target:null,retarget:0,deploy:1,alive:true,air:!!c.air,isBuilding:c.kind==='building',moving:false,wob:0,walk:rand(0,6),anim:0,range:(type==='golem'&&skin!=='band')?1:c.range,ranged:!!c.proj&&!(type==='golem'&&skin!=='band'),flip:team===1?1:-1,face:team===1?0:Math.PI};}
 const radOf=e=>e.isTower?e.r:e.c.r;
 const fyOf=(team,y)=>team===2?y:AH-y;
 
 const AI_TABLE={
-  chill:{rate:[.72,.8,.88],think:[1.3,1.1,.95],react:[.5,.62,.74],pushLo:[8.8,8.2,7.6],pushHi:[10,10,9.6]},
-  standard:{rate:[.8,.92,1.02],think:[1.05,.85,.68],react:[.62,.78,.9],pushLo:[8.2,7.4,6.6],pushHi:[10,9.7,9.3]}
+  chill:{rate:[.72,.78,.85,.9],think:[1.3,1.15,1.0,.92],react:[.5,.6,.7,.76],pushLo:[8.8,8.4,7.9,7.5],pushHi:[10,10,9.8,9.5]},
+  standard:{rate:[.8,.88,.97,1.04],think:[1.05,.9,.76,.66],react:[.62,.74,.85,.9],pushLo:[8.2,7.6,7,6.5],pushHi:[10,9.8,9.5,9.2]}
 };
 function aiParams(diff,tempo){const A=AI_TABLE[tempo==='chill'?'chill':'standard'];return {rate:A.rate[diff],think:A.think[diff],react:A.react[diff],pushLo:A.pushLo[diff],pushHi:A.pushHi[diff]};}
-const ENEMY_MUL=[1,1.14,1.4];
+const ENEMY_MUL=[1,1.1,1.25,1.42];
 function mkSide(team,skin,deck,ai){return {team,skin,energy:team===1?6:4,cd:2.5,hand:deck.slice(0,4),queue:deck.slice(4),push:8,flip:0,ai,mul:{}};}
 
 function makeLane(board,idx,opts){
   opts=opts||{};
-  const pDeck=shuffle(CARD_ORDER),eDeck=shuffle(ENEMY_ORDER);
+  const pDeck=shuffle(opts.bot?CARD_ORDER:CARD_ORDER.filter(owned)),eDeck=shuffle(ENEMY_ORDER);
   const diff=board.diff;
   const L={kind:'lane',board,idx,time:180,over:false,winner:0,crowns:{1:0,2:0},units:[],projs:[],spells:[],sel:-1,hover:null,encoreSaid:false,
-    s:20,ox:0,oy:0,arena:null,lastAff:-1,hudCache:{},sim:!!opts.sim,charge:0,chordArm:false,chords:[],chordMul:opts.bot?(opts.botMul||1):cardMul(lvOf('chord'))};
+    s:20,ox:0,oy:0,arena:null,lastAff:-1,hudCache:{},sim:!!opts.sim,charge:0,chordArm:false,chords:[],chordMul:opts.bot?(opts.botMul||1):cardMul(upOf('chord').p)};
   L.side={1:mkSide(1,'band',pDeck,opts.bot||null),2:mkSide(2,board.foe,eDeck,aiParams(diff,save.tempo))};
-  CARD_ORDER.forEach(t=>{L.side[1].mul[t]=opts.bot?(opts.botMul||1):cardMul(lvOf(t));L.side[2].mul[t]=ENEMY_MUL[diff];});
+  CARD_ORDER.forEach(t=>{const u=upOf(t),bm=opts.botMul||1;L.side[1].mul[t]=opts.bot?{h:bm,d:bm}:{h:cardMul(u.h),d:cardMul(u.p)};const em=ENEMY_MUL[diff];L.side[2].mul[t]={h:em,d:em};});
   L.side[2].push=rand(L.side[2].ai.pushLo,L.side[2].ai.pushHi);
   if(opts.bot)L.side[1].push=rand(opts.bot.pushLo,opts.bot.pushHi);
-  const sm=opts.bot?(opts.stageMul||1):stageMul(),E=ENEMY_TOWER[diff];
+  const smH=opts.bot?(opts.stageMul||1):castleMul('h'),smD=opts.bot?(opts.stageMul||1):castleMul('p'),E=ENEMY_TOWER[diff];
   const sL=board.foe==='hush'?'industry':board.foe,sR=board.foe==='hush'?'storm':board.foe;
-  L.tw={1:{L:mkTower(1,false,3.5,26,'band',1500*sm,50*sm),R:mkTower(1,false,14.5,26,'band',1500*sm,50*sm),K:mkTower(1,true,9,29.2,'band',2600*sm,58*sm)},
+  L.tw={1:{L:mkTower(1,false,3.5,26,'band',1500*smH,50*smD),R:mkTower(1,false,14.5,26,'band',1500*smH,50*smD),K:mkTower(1,true,9,29.2,'band',2600*smH,58*smD)},
         2:{L:mkTower(2,false,3.5,6,sL,E.p[0],E.p[1]),R:mkTower(2,false,14.5,6,sR,E.p[0],E.p[1]),K:mkTower(2,true,9,2.8,sL,E.k[0],E.k[1])}};
   L.towers=[L.tw[1].L,L.tw[1].R,L.tw[1].K,L.tw[2].L,L.tw[2].R,L.tw[2].K];
   if(!L.sim){$('lane-foe').textContent=FOES[board.foe].name;renderHand(L);L.atmo=makeAtmo(board);}
@@ -1430,7 +1460,7 @@ function deploy(L,team,type,x,y,skin){
   const c=CARDS[type],S=L.side[team];
   if(!L.sim)Snd.pluck(team===1?Math.floor(rand(4,9)):Math.floor(rand(0,4)),team===1?.07:.045);
   if(team===2&&!L.sim)labelFx(x,y,SKIN_NAMES[skin][type],'#ffc3b5');
-  if(c.kind==='spell'){castWave(L,team,x,y,skin,c.dmg*S.mul[type]);return;}
+  if(c.kind==='spell'){castWave(L,team,x,y,skin,c.dmg*S.mul[type].d);return;}
   const offs=c.count===1?[[0,0]]:c.count===2?[[-.45,0],[.45,0]]:[[0,-.42],[-.45,.3],[.45,.3]];
   offs.forEach(([dx,dy])=>L.units.push(mkUnit(team,type,clamp(x+dx,.5,AW-.5),clamp(y+dy,.5,AH-.5),skin,S.mul[type],L.sim)));
   if(!L.sim){
@@ -1802,7 +1832,7 @@ function aiThink(L,S,dt){
     if(S.energy>=9.6){
       const wi=S.hand.indexOf('wave');
       const weak=[tw.L,tw.R].filter(t=>t.alive).sort((a,b)=>a.hp-b.hp)[0];
-      if(wi>=0&&weak&&weak.hp<=CARDS.wave.dmg*S.mul.wave*CARDS.wave.towerMul*1.05){aiPlay(L,S,wi,weak.x,fyOf(me,weak.y));return;}
+      if(wi>=0&&weak&&weak.hp<=CARDS.wave.dmg*S.mul.wave.d*CARDS.wave.towerMul*1.05){aiPlay(L,S,wi,weak.x,fyOf(me,weak.y));return;}
       const ai=S.hand.indexOf('amp');if(ai>=0){aiPlay(L,S,ai,9,9.5);return;}
       const alt=S.hand.findIndex(t=>CARDS[t].kind!=='spell'&&afford(t));if(alt>=0)aiPlay(L,S,alt,bx,12.5);
     }
@@ -1851,10 +1881,10 @@ function cardIcon(type){
 function renderHand(L){
   const box=$('hand');box.innerHTML='';const S=L.side[1];
   S.hand.forEach((type,i)=>{
-    const c=CARDS[type];const b=document.createElement('button');const lv=lvOf(type);
+    const c=CARDS[type];const b=document.createElement('button');const uu=upOf(type),lv=(uu.p-1)+(uu.h-1);
     b.className='card'+(L.sel===i?' sel':'')+(c.cost>S.energy?' dim':'');
-    b.setAttribute('aria-label',`${c.name}, level ${lv}, costs ${c.cost}`);
-    b.innerHTML=`<img alt="" src="${cardIcon(type)}"><span class="cost">${c.cost}</span>${lv>1?`<span class="lv">Lv ${lv}</span>`:''}<span class="cname">${c.name}</span>`;
+    b.setAttribute('aria-label',`${c.name}, ${lv} upgrades, costs ${c.cost}`);
+    b.innerHTML=`<img alt="" src="${cardIcon(type)}"><span class="cost">${c.cost}</span>${lv>0?`<span class="lv">+${lv}</span>`:''}<span class="cname">${c.name}</span>`;
     b.addEventListener('click',()=>selectCard(i));
     box.appendChild(b);
   });
@@ -2061,12 +2091,13 @@ function conqParams(diff,tempo,ease){ease=ease||1;const ch=tempo==='chill';const
   return {o:2,interval:(ch?[6,5]:[5,4.2])[diff]*ease,cd:(diff===0?14:9)*ease,prod:(ch?[1.45,1.2]:[1.3,1.08])[diff]*Math.pow(ease,.8),defend:ease>1.3?0:ease>1?d*.5:d,ratio:(ch?[.5,.6]:[.55,.65])[diff]};}
 function makeConq(board,idx,opts){
   opts=opts||{};
-  const lvBonus=opts.sim?(opts.lvBonus||0):clamp(save.stageLv||1,1,MAX_LV)-1;
+  const fame=CARD_ORDER.reduce((a,t)=>{const u=upOf(t);return a+(u.p-1)+(u.h-1);},0)/CARD_ORDER.length,cu=upOf('castle');
+  const lvBonus=opts.sim?(opts.lvBonus||0):Math.min(5,((cu.p-1)+(cu.h-1))/2+fame*.5);
   const rounds=board.rounds||[board.map];
   const round=clamp(opts.round!=null?opts.round:(save.roundProg[board.id]||0),0,rounds.length-1);
   const ease=[1,1.25,1.6][rounds.length-1-round]*(board.diff===0?1.2:1);
   const C={kind:'conq',board,idx,foe:board.foe,over:false,winner:0,elapsed:0,ratio:.5,sel:new Set(),squads:[],sim:!!opts.sim,
-    round,rounds,nodes:MAPS[rounds[round]].map(n=>({id:nid++,x:n.x,y:n.y,o:n.o,count:n.c+(n.o===1?lvBonus*3:0),level:n.level||1,k:n.k||'stage',pt:0,bt:0,wob:0,seed:Math.random()*10})),
+    round,rounds,nodes:MAPS[rounds[round]].map(n=>({id:nid++,x:n.x,y:n.y,o:n.o,count:n.c+(n.o===1?Math.floor(lvBonus*3):0),level:n.level||1,k:n.k||'stage',pt:0,bt:0,wob:0,seed:Math.random()*10})),
     ai:[conqParams(board.diff,save.tempo,ease)],s:20,ox:0,oy:0,upBtn:null,hudCache:{},pm:1.1+.1*lvBonus,maxHeld:1};
   C.eprod=C.ai[0].prod;
   if(opts.bot)C.ai.push(Object.assign({o:1,cd:4},opts.bot));
@@ -2341,6 +2372,7 @@ function showResult(game){
   if(game.kind==='lane')stars=win?Math.max(1,game.crowns[1]):0;
   else stars=win?(game.elapsed<200?3:game.elapsed<330?2:1):0;
   const dust=rewardFor(game,win,stars);
+  const ownedBefore=CARD_ORDER.filter(owned);
   save.dust+=dust;
   if(win){
     eyebrow='Victory';
@@ -2348,9 +2380,11 @@ function showResult(game){
     text=i===BOARDS.length-1?'The Hush has lifted. Every island, every road and every stage glows with music again. Thanks for touring with X-Ray Star.':`${b.name} is glowing again. ${stars<3?'Replay any time to chase all three stars.':'A perfect show.'}`;
     save.stars[b.id]=Math.max(save.stars[b.id]||0,stars);
     if(game.kind==='conq')save.roundProg[b.id]=0;
-    if(save.unlocked<Math.min(BOARDS.length,i+2))save.unlocked=Math.min(BOARDS.length,i+2);
+    if(!b.bonus)unlockAfter(i);
   }else if(game.winner===2){eyebrow='The Hush holds';title='Quiet, for now';text=`${FOES[b.foe].name} held on this time. Spend your Stardust backstage to level up the band, then try again.`+(game.kind==='conq'&&game.rounds.length>1?` You'll pick up at round ${game.round+1}.`:'');}
   else{eyebrow='Stalemate';title='An even set';text='Neither side gave ground. Level up backstage and play it again to break the tie.';}
+  const joined=CARD_ORDER.filter(t=>owned(t)&&!ownedBefore.includes(t));
+  if(joined.length){text+=` New band member: ${joined.map(t=>CARDS[t].name).join(' and ')} joins the tour!`;setTimeout(()=>toast(`${joined.map(t=>CARDS[t].name).join(' and ')} joined the band!`),600);}
   persist();
   $('res-eyebrow').textContent=eyebrow;$('res-title').textContent=title;$('res-stars').innerHTML=starsHTML(stars);$('res-text').textContent=text;
   $('res-reward').textContent=`\u2726 +${dust} Stardust \u00B7 spend it`;
@@ -2358,7 +2392,11 @@ function showResult(game){
   const mk=(label,cls,fn)=>{const bt=document.createElement('button');bt.className='btn '+cls;bt.textContent=label;bt.addEventListener('click',()=>{Snd.tick();fn();});box.appendChild(bt);};
   mk('Backstage','',()=>{G=null;fx=[];setTheme('reach');Snd.startMusic('reach');goBackstage();});
   mk(win?'Play again':'Try again',win&&i<BOARDS.length-1?'':'primary',()=>startBoard(i));
-  if(win&&i<BOARDS.length-1)mk('Next stop','primary',()=>{goMap();openBrief(i+1);});
+  if(win&&i<BOARDS.length-1){
+    let j=i+1;while(j<BOARDS.length&&BOARDS[j].bonus)j++;
+    if(BOARDS[i+1].bonus){mk('Bonus stop','',()=>{goMap();openBrief(i+1);});if(j<BOARDS.length)mk('Next battle','primary',()=>{goMap();openBrief(j);});}
+    else mk('Next stop','primary',()=>{goMap();openBrief(i+1);});
+  }
   else mk('Tour route','',goMap);
   show([game.kind==='lane'?'hud-lane':'hud-conq','scr-result']);
 }
