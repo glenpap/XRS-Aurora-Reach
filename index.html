@@ -216,6 +216,41 @@ p{line-height:1.55;margin:0}
 
 @media (max-width:380px){.card .cname{font-size:9.5px}.clock{font-size:20px;min-width:60px}.pill{padding:8px 9px;font-size:12px}}
 @media (min-aspect-ratio:1/1) and (max-height:900px){.card{max-width:70px}.card .cname{font-size:9.5px}.lane-hint{margin-bottom:4px;font-size:12px}.res{margin-top:6px}.bottombar{padding-top:10px}.next img{width:38px;height:38px}}
+
+/* ---- wide screens (tablet landscape, laptop, desktop): controls move to side columns ---- */
+body.wide #lane-top{right:auto;bottom:0;width:210px;flex-direction:column;align-items:flex-start;gap:16px;padding:calc(env(safe-area-inset-top,0px) + 16px) 14px 16px calc(env(safe-area-inset-left,0px) + 16px);background:linear-gradient(90deg,rgba(10,8,30,.92) 55%,rgba(10,8,30,0))}
+body.wide #lane-top .side{flex:0 0 auto;width:100%}
+body.wide #lane-top .side.r{align-items:flex-start;text-align:left}
+body.wide #lane-top .side-name{font-size:15px}
+body.wide #lane-top .crowns{font-size:20px}
+body.wide #lane-top .clock{font-size:38px;text-align:left;margin:4px 0}
+body.wide #hud-lane .mute-btn{left:calc(env(safe-area-inset-left,0px) + 66px);top:calc(env(safe-area-inset-top,0px) + 18px)}
+body.wide #lane-bottom{left:auto;top:0;width:300px;display:flex;flex-direction:column;justify-content:center;padding:16px calc(env(safe-area-inset-right,0px) + 16px) 16px 16px;background:linear-gradient(270deg,rgba(10,8,30,.94) 62%,rgba(10,8,30,0));box-sizing:border-box}
+body.wide .chord-btn{position:relative;right:auto;top:auto;margin:0 auto 14px;width:74px;height:74px;flex:0 0 auto}
+body.wide .lane-hint{white-space:normal;min-height:36px}
+body.wide .hand-row{flex-direction:column;align-items:stretch;max-width:none;width:100%}
+body.wide #hand{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body.wide .card{max-width:none}
+body.wide .next{order:2;flex-direction:row;justify-content:center;gap:8px;flex:0 0 auto;margin-top:10px}
+body.wide .next img{width:38px;height:38px}
+body.wide .res{max-width:none;width:100%}
+body.wide .conq-bottom{left:auto;top:0;width:290px;justify-content:center;padding:16px calc(env(safe-area-inset-right,0px) + 16px) 16px 16px;background:linear-gradient(270deg,rgba(10,8,30,.92) 60%,rgba(10,8,30,0));box-sizing:border-box}
+body.wide .conq-hint{text-align:center}
+body.wide .send-seg{flex-wrap:nowrap;justify-content:center}
+body.wide .send-seg span{padding:0 9px}
+body.wide .send-seg button{padding:10px 12px;font-size:14px}
+body.wide #conq-top{z-index:3}
+@media (max-height:560px){
+  body.wide #hand{grid-template-columns:repeat(4,1fr);gap:6px}
+  body.wide .card .cname{font-size:9px;padding-bottom:4px}
+  body.wide .card .cost{width:18px;height:18px;font-size:11px}
+  body.wide .chord-btn{width:54px;height:54px;margin-bottom:6px}
+  body.wide #lane-top{gap:8px}
+  body.wide #lane-top .clock{font-size:26px}
+  body.wide .lane-hint{min-height:0;font-size:12px;margin-bottom:4px}
+  body.wide .next{display:none}
+  body.wide .res{margin-top:6px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -1777,7 +1812,6 @@ let G=null,paused=false;
 let lastOpts={};
 function startBoard(i,opts){
   opts=opts||{};lastOpts=opts;syncAudioBtns();
-  if(VW>VH&&VH<520&&!startBoard.told){startBoard.told=true;setTimeout(()=>toast('Tip: turn your phone upright for the best view'),3200);}
   const b=BOARDS[i];briefIdx=i;fx=[];victory=null;paused=false;setTheme(b.theme);Snd.startMusic(b.theme,b.mode==='lane'?b.id:'conquest','track-'+b.id+'.mp3');
   if(b.mode==='lane'){show('hud-lane');G=makeLane(b,i,{daily:opts.daily});}else{show('hud-conq');G=makeConq(b,i);}
   if(opts.daily){const tw=TWISTS.find(t=>t.id===opts.daily);if(tw)setTimeout(()=>toast(`Tonight's Gig · ${tw.name}: ${tw.desc}`),300);}
@@ -1822,6 +1856,13 @@ function makeLane(board,idx,opts){
 }
 
 function laneResize(L){
+  if(document.body.classList.contains('wide')){
+    const lft=$('lane-top').getBoundingClientRect().right||210,rgt=$('lane-bottom').getBoundingClientRect().left||(VW-300);
+    const availW=Math.max(100,rgt-lft-8),availH=Math.max(100,VH-12);
+    L.s=Math.max(4,Math.min(availW/AW,availH/(AH+2.4)));
+    L.ox=lft+(rgt-lft-AW*L.s)/2;L.oy=6+1.5*L.s+Math.max(0,(availH-(AH+2.4)*L.s)/2);
+    L.chordPt=null;buildArena(L);return;
+  }
   const top=$('lane-top').getBoundingClientRect().bottom||56;
   const bot=$('lane-bottom').getBoundingClientRect().height||170;
   const availH=Math.max(100,VH-top-bot+10),availW=VW-16;
@@ -2642,10 +2683,12 @@ function makeConq(board,idx,opts){
   return C;
 }
 function conqResize(C){
-  const top=$('conq-top').getBoundingClientRect().bottom||60;const bot=$('conq-bottom').getBoundingClientRect().height||110;
-  const availH=Math.max(100,VH-top-bot),availW=VW-16;
+  const wide=document.body.classList.contains('wide');
+  const top=$('conq-top').getBoundingClientRect().bottom||60;const bot=wide?8:($('conq-bottom').getBoundingClientRect().height||110);
+  const rgt=wide?($('conq-bottom').getBoundingClientRect().left||(VW-290)):VW;
+  const availH=Math.max(100,VH-top-bot),availW=rgt-16;
   C.s=Math.max(4,Math.min(availW/(MW+.6),availH/(MH+1.6)));
-  C.ox=(VW-MW*C.s)/2;C.oy=top+.8*C.s+(availH-(MH+1.6)*C.s)/2;C.sprites={};
+  C.ox=(rgt-MW*C.s)/2;C.oy=top+.8*C.s+(availH-(MH+1.6)*C.s)/2;C.sprites={};
 }
 const conqToWorld=(C,sx,sy)=>({x:(sx-C.ox)/C.s,y:(sy-C.oy)/C.s});
 const conqToScreen=(C,x,y)=>({x:C.ox+x*C.s,y:C.oy+y*C.s});
@@ -3015,6 +3058,7 @@ $('btn-openall').addEventListener('click',()=>{save.allOpen=true;persist();rende
 /* ================= loop ================= */
 function resize(){
   VW=Math.max(1,window.innerWidth);VH=Math.max(1,window.innerHeight);
+  document.body.classList.toggle('wide',VW>=700&&VW/VH>=1.05);
   DPR=Math.min(lowGfx?1:2,window.devicePixelRatio||1);
   cv.width=Math.floor(VW*DPR);cv.height=Math.floor(VH*DPR);
   buildSky();gameResize();
