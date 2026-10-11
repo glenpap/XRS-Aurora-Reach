@@ -7,12 +7,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Aurora Reach">
+<meta name="apple-mobile-web-app-title" content="Aurora Tour">
 <meta name="description" content="Help X-Ray Star fight through waves of corporate meddling and wild tour weather. A calm, beautiful strategy game featuring real X-Ray Star songs.">
-<meta property="og:title" content="X-Ray Star: Aurora Reach">
+<meta property="og:title" content="X-Ray Star: Aurora Tour">
 <meta property="og:description" content="Help X-Ray Star fight through waves of corporate meddling and wild tour weather. A calm, beautiful strategy game featuring real X-Ray Star songs.">
 <meta property="og:type" content="website">
-<title>X-Ray Star Aurora Reach</title>
+<title>X-Ray Star: Aurora Tour</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Nunito:wght@400;600;800;900&display=swap">
@@ -182,6 +182,10 @@ p{line-height:1.55;margin:0}
 .setlist b{color:#f5d58c}.setlist small{color:var(--muted);font-size:12px;margin-left:auto;text-align:right}
 .setlist .pl{width:22px;height:22px;border-radius:50%;background:#f5d58c;color:#241a40;display:grid;place-items:center;font-size:10px;flex:0 0 auto}
 .btn.danger{background:rgba(255,120,110,.16);border-color:rgba(255,140,120,.7);color:#ffc3b5}
+.btn.glow,.backstage-btn.glow{border-color:rgba(245,213,140,.9);color:#f5d58c;box-shadow:0 0 0 1px rgba(245,213,140,.5),0 0 18px rgba(245,213,140,.35);animation:upGlow 2.6s ease-in-out infinite}
+@keyframes upGlow{0%,100%{box-shadow:0 0 0 1px rgba(245,213,140,.45),0 0 12px rgba(245,213,140,.25)}50%{box-shadow:0 0 0 1px rgba(245,213,140,.8),0 0 22px rgba(245,213,140,.45)}}
+@media (prefers-reduced-motion:reduce){.btn.glow,.backstage-btn.glow{animation:none}}
+.conquered{margin:12px 0 0;padding:10px 14px;border-radius:14px;background:rgba(245,213,140,.12);border:1px solid rgba(245,213,140,.4);font-size:14px;color:var(--muted);line-height:1.45}.conquered b{color:#f5d58c}
 .lyric{font-family:'Marcellus SC',Georgia,serif;color:#f5d58c;font-size:18px;margin:-10px auto 22px;max-width:34ch;opacity:.95}
 .lyric span{display:block;font-family:var(--body);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 .gig{display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;margin:12px 0 6px;padding:14px 16px;border-radius:16px;border:1px solid rgba(111,230,207,.45);background:linear-gradient(120deg,rgba(111,230,207,.14),rgba(185,156,255,.12))}
@@ -256,12 +260,12 @@ body.wide #conq-top{z-index:3}
 <script data-goatcounter="https://xrs-aurora.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
-<canvas id="game" aria-label="Aurora Reach game board"></canvas>
+<canvas id="game" aria-label="Aurora Tour game board"></canvas>
 
 <div id="scr-title" class="screen">
   <div class="title-wrap">
     <div class="eyebrow">X-Ray Star presents</div>
-    <h1>Aurora Reach</h1>
+    <h1>Aurora Tour</h1>
     <p class="lyric">&ldquo;I got a war going on in my head.&rdquo;<span>X-Ray Star &middot; Monster</span></p>
     <p class="lede">Help X-Ray Star fight their way through wave after wave of corporate meddling and wild tour weather. Win battles, power up the band, and bring the music back to all seven stops.</p>
     <button id="btn-begin" class="btn primary big">Begin the tour</button>
@@ -275,7 +279,7 @@ body.wide #conq-top{z-index:3}
     <div class="map-head">
       <div>
         <div class="eyebrow">The tour route</div>
-        <h2>Seven stops to wake the realm</h2>
+        <h2>Seven stops to save the music</h2>
       </div>
       <div class="bar">
         <button class="dust" id="dust-map" aria-label="Spend Stardust backstage">✦ 0</button>
@@ -290,6 +294,7 @@ body.wide #conq-top{z-index:3}
       <div class="seg"><button id="btn-sound" aria-pressed="true">Sound on</button><button id="btn-music" aria-pressed="true">Music on</button></div>
     </div>
     <a class="now-playing" id="now-playing" href="#" target="_blank" rel="noopener" hidden><span class="np-eq" aria-hidden="true"><i></i><i></i><i></i></span><span>Now playing: <b>X-Ray Star &middot; &ldquo;<span id="np-title"></span>&rdquo;</b></span><span class="np-cta">Watch the video &rarr;</span></a>
+    <p class="conquered" id="conquered" hidden>&#10022; <b>Tour conquered!</b> Replay any battle to try new strategies, or chase three stars on every stop.</p>
     <div class="gig" id="gig"></div>
     <div class="stops" id="stops"></div>
     <button class="text-btn" id="btn-openall">Open every stop</button>
@@ -411,7 +416,7 @@ body.wide #conq-top{z-index:3}
 <div id="scr-finale" class="screen finale-scr" hidden>
   <div class="panel center finale">
     <div class="eyebrow">Tour complete</div>
-    <h2>The whole Reach is singing</h2>
+    <h2>The music is back!</h2>
     <p id="fin-text" class="muted"></p>
     <div class="fin-stats" id="fin-stats"></div>
     <div class="eyebrow" style="margin-top:18px">The soundtrack</div>
@@ -502,11 +507,11 @@ const BOARDS=[
   {id:'spires',mode:'lane',name:'The Streaming Spires',foe:'industry',theme:'isles',diff:2,
    blurb:'High above the clouds, the Syndicate\'s streaming towers pay out in fractions of a cent. Topple them and give the songs back their worth.'},
   {id:'hailstone',mode:'lane',name:'Hailstone Pass',foe:'storm',theme:'storm',diff:2,
-   blurb:'The last mountain pass before the edge of the Reach. The Storm Court has thrown every cloud it has at the road.'},
+   blurb:'The last mountain pass before the final show. The Storm Court has thrown every cloud it has at the road.'},
   {id:'archipelago',mode:'conquest',bonus:true,name:'The Algorithm Archipelago',foe:'industry',theme:'isles',map:1,rounds:[4,1],diff:1,
    blurb:'A bonus stop. The Syndicate\'s algorithm decides which islands get heard. Win them back one castle at a time.'},
   {id:'throne',mode:'lane',name:'The Hush Throne',foe:'hush',theme:'hush',diff:3,
-   blurb:'At the edge of the Reach, the Syndicate and the Storm Court have joined forces around the Hush itself. Play the show of your life.'}
+   blurb:'The last stop of the tour. The Syndicate and the Storm Court have joined forces around the Hush itself. Play the show of your life.'}
 ];
 const ROMAN=['I','II','III','IV','V','VI','VII'];
 
@@ -516,7 +521,7 @@ const CARDS={
   archers:{name:'Echo Archers',cost:3,kind:'troop',count:2,hp:270,dmg:64,spd:1.05,range:5,sight:6,atk:1,r:.38,h:1.4,hitsAir:true,proj:true,desc:'Two rangers firing sound arrows. Hit fliers too.'},
   sprites:{name:'Synth Sprites',cost:2,kind:'troop',count:3,hp:125,dmg:44,spd:1.6,range:1.5,sight:5.5,atk:.8,r:.3,h:.5,air:true,hitsAir:true,desc:'Three fairies with zapping keytars. Fragile.'},
   golem:{name:'Drum Tank',cost:5,kind:'troop',count:1,hp:2900,dmg:175,spd:.62,range:4.8,sight:7.5,atk:1.7,r:.75,h:2.05,bOnly:true,proj:true,splash:1.7,desc:'A kick-drum tank on treads. Lobs flaming drumstick shells at castles.'},
-  comet:{name:'Comet Dragon',cost:5,kind:'troop',count:1,hp:1050,dmg:130,spd:.95,range:3.5,sight:5.5,atk:1.6,r:.6,h:.8,air:true,hitsAir:true,splash:1.5,proj:true,desc:'A little dragon with big wings. Breathes a splash of fire.'},
+  comet:{name:'Comet Chris',cost:5,kind:'troop',count:1,hp:1050,dmg:130,spd:.95,range:3.5,sight:5.5,atk:1.6,r:.6,h:.8,air:true,hitsAir:true,splash:1.5,proj:true,desc:'Chris, the band\'s singer, as a little dragon with big wings. Breathes a long plume of fire. Based on a drawing by Chris herself.'},
   amp:{name:'Amp Turret',cost:4,kind:'building',count:1,hp:1050,dmg:75,range:6.2,sight:6.2,atk:.9,r:.72,h:1.65,hitsAir:true,proj:true,life:32,desc:'Defensive amp blasting sonic waves. Fades after 32s.'},
   wave:{name:'Feedback Wave',cost:3,kind:'spell',radius:2.6,dmg:340,towerMul:.35,r:.6,h:1,desc:'Spell. Your Main Stage launches a fiery sound missile that bursts on impact.'},
   bass:{name:'Bass Drop',cost:4,kind:'troop',count:1,hp:1500,dmg:150,spd:.9,range:1.1,sight:6,atk:2,r:.62,h:1.9,splash:2.3,slow:2.2,desc:'A towering bassist. Leaps and slams his bass down, sending a sub-bass shockwave that hits everything nearby and slows it down.'},
@@ -961,25 +966,39 @@ function chSprite(g,st,wing,body,glow,prop){
   if(prop)prop(g,st);
 }
 function chGolem(g,st){
-  g.scale(1.15,1.15);const mv=st.moving?st.w:0;
-  pR(g,-.8,-.46,1.6,.46,.23);fs(g,lg(g,0,-.46,0,0,['#3d3660','#1b1732']));
-  g.save();pR(g,-.8,-.46,1.6,.46,.23);g.clip();g.strokeStyle='rgba(190,180,230,.35)';g.lineWidth=.04;g.beginPath();const off=((mv*.1)%.18+.18)%.18;for(let x=-.95+off;x<.95;x+=.18){g.moveTo(x,-.46);g.lineTo(x,0);}g.stroke();g.restore();
-  for(let i=0;i<4;i++){const wx=-.55+i*.37;pE(g,wx,-.22,.13,.13);fs(g,rg(g,wx,-.22,.13,'#c3b9e6','#5c5486'),.03);g.save();g.translate(wx,-.22);g.rotate(mv*.9);g.strokeStyle='#f5d58c';g.lineWidth=.028;g.beginPath();g.moveTo(-.08,0);g.lineTo(.08,0);g.moveTo(0,-.08);g.lineTo(0,.08);g.stroke();g.restore();}
+  g.scale(1.18,1.18);const mv=st.moving?st.w:0;
+  /* armored treads */
+  g.beginPath();g.moveTo(-.9,-.36);g.lineTo(-.74,-.5);g.lineTo(.74,-.5);g.lineTo(.92,-.34);g.lineTo(.78,-.02);g.lineTo(-.76,-.02);g.closePath();fs(g,lg(g,0,-.5,0,0,['#4a4d63','#23232f','#121219']));
+  g.save();g.clip();g.strokeStyle='rgba(200,205,230,.28)';g.lineWidth=.035;g.beginPath();const off=((mv*.1)%.16+.16)%.16;for(let x=-1+off;x<1;x+=.16){g.moveTo(x,-.5);g.lineTo(x-.04,0);}g.stroke();g.restore();
+  for(let i=0;i<4;i++){const wx=-.54+i*.36;pE(g,wx,-.22,.12,.12);fs(g,rg(g,wx,-.22,.12,'#d9dde8','#4a4e62'),.03);g.save();g.translate(wx,-.22);g.rotate(mv*.9);g.strokeStyle='#2a2d3a';g.lineWidth=.025;g.beginPath();for(let k=0;k<3;k++){const a=k*TAU/3;g.moveTo(0,0);g.lineTo(Math.cos(a)*.09,Math.sin(a)*.09);}g.stroke();g.restore();glowAt(g,wx,-.22,.1,'#6fe6cf',.7);}
+  for(let i=0;i<7;i++){const lx=-.66+i*.22,a=reduceMotion?.8:.55+.35*Math.sin(st.t*2-i*.8);glowAt(g,lx,-.47,.09,'#6fe6cf',a);circ(g,lx,-.47,.018,'#dffffa');}
   g.translate(0,st.bob*1.2+(st.moving&&!reduceMotion?Math.sin(st.w*2)*.012:0));
-  pR(g,-.64,-1.24,1.12,.82,.12);fs(g,lg(g,0,-1.24,0,-.42,['#ff8aa4','#c93c66','#7a1f3e']));
-  for(let i=0;i<9;i++){const px=-.55+((i*.37)%1)*.95,py=-1.15+((i*.53)%1)*.65;g.globalAlpha*=.55;circ(g,px,py,.018,'#ffffff');g.globalAlpha/=.55;}
-  for(let i=0;i<5;i++){rrect(g,-.5+i*.22,-1.3,.08,.1,.02,'#dfe3f0');rrect(g,-.5+i*.22,-.46,.08,.1,.02,'#dfe3f0');}
-  pR(g,-.68,-1.27,.1,.88,.04);fs(g,'#f5d58c',.03);pR(g,.44,-1.27,.1,.88,.04);fs(g,'#f5d58c',.03);
-  pE(g,.57,-.83,.14,.45);fs(g,rg(g,.57,-.83,.4,'#ffffff','#e2d6bc'),.035);
-  g.save();g.translate(.57,-.83);g.scale(.3,1);glowAt(g,0,0,.5,'#6fe6cf',.6);star(g,0,0,.3,.13,'#2fb5a4');g.restore();
+  /* exhaust pipes */
+  for(const k of[0,1]){g.save();g.translate(-.62-k*.08,-.9-k*.1);g.rotate(-.6);pR(g,-.04,-.34,.08,.36,.03);fs(g,lg(g,-.04,0,.04,0,['#8c92a8','#f2f4fa','#7c8298']),.025);glowAt(g,0,-.36,.16,'#ffb45c',.5+.3*Math.sin(st.t*2.4+k));g.restore();}
+  /* galaxy-sparkle kick drum shell */
+  pR(g,-.64,-1.26,1.12,.84,.12);fs(g,lg(g,0,-1.26,0,-.42,['#3a2a5c','#1c1430','#0d0a18']));
+  for(let i=0;i<22;i++){const px=-.58+((i*.37)%1)*1.0,py=-1.2+((i*.53)%1)*.72,tw=reduceMotion?.7:.4+.5*Math.abs(Math.sin(st.t*1.1+i*2.3));g.globalAlpha=tw;circ(g,px,py,.012+(i%3)*.006,['#ffffff','#9ff7e8','#ff9fcf','#c9b8ff'][i%4]);}g.globalAlpha=1;
+  /* chrome hoops + lugs */
+  for(const hx of[-.69,.43]){pR(g,hx,-1.28,.12,.88,.04);fs(g,lg(g,hx,0,hx+.12,0,['#7f86a0','#f6f7fc','#8a91aa']),.03);}
+  for(let i=0;i<5;i++){rrect(g,-.5+i*.22,-1.32,.09,.11,.03,'#e6e9f2');rrect(g,-.5+i*.22,-.47,.09,.11,.03,'#e6e9f2');}
+  /* front head with glowing logo */
+  pE(g,.58,-.84,.15,.45);fs(g,rg(g,.58,-.84,.4,'#ffffff','#d9dbe6'),.035);
+  g.save();g.translate(.58,-.84);g.scale(.32,1);glowAt(g,0,0,.55,'#6fe6cf',.7);g.strokeStyle='#2fb5a4';g.lineWidth=.05;g.beginPath();g.arc(0,0,.3,0,TAU);g.stroke();star(g,0,0,.24,.1,'#2fb5a4');g.restore();
+  /* headlight */
+  circ(g,.66,-.5,.05,'#fff1b0');g.save();g.globalCompositeOperation='lighter';const hg=g.createLinearGradient(.66,0,1.5,0);hg.addColorStop(0,'rgba(255,241,176,.35)');hg.addColorStop(1,'rgba(255,241,176,0)');g.fillStyle=hg;g.beginPath();g.moveTo(.68,-.53);g.lineTo(1.5,-.68);g.lineTo(1.5,-.3);g.lineTo(.68,-.47);g.closePath();g.fill();g.restore();
+  /* snare turret + stick cannons */
   const rec=st.a>0?Math.sin(st.a*Math.PI)*.13:0,hatch=st.a>0?-.14*Math.sin(st.a*Math.PI):0;
-  pR(g,-.42,-1.64,.7,.38,.08);fs(g,lg(g,-.42,0,.28,0,['#8a93ad','#eef0f8','#7d86a2']));
+  pR(g,-.42,-1.64,.7,.38,.08);fs(g,lg(g,-.42,0,.28,0,['#7f86a0','#f6f7fc','#7d86a2']));
   g.strokeStyle='rgba(40,35,70,.4)';g.lineWidth=.02;g.beginPath();for(let i=0;i<5;i++){const x=-.36+i*.15;g.moveTo(x,-1.62);g.lineTo(x,-1.28);}g.stroke();
   pE(g,-.07,-1.64,.35,.09);fs(g,'#f4f1ff',.03);
   for(const k of[0,1]){g.save();g.translate(.18,-1.47+k*.13);g.rotate(-.35+k*.06);g.translate(-rec,0);pR(g,0,-.045,.95,.09,.045);fs(g,lg(g,0,0,.95,0,['#a8703c','#f1d3a0']),.03);pE(g,.95,0,.07,.06);fs(g,'#fff1d6',.025);glowAt(g,.98,0,.32,'#ffb45c',st.a>0?.95:.35);g.restore();}
+  /* hi-hat antenna */
+  g.strokeStyle='#c9ccd8';g.lineWidth=.03;g.beginPath();g.moveTo(-.36,-1.64);g.lineTo(-.48,-2.12);g.stroke();
+  for(const [y,w] of [[-2.0,.2],[-2.07,.2]]){g.save();g.translate(-.47,y);g.rotate(-.24);pE(g,0,0,w,.035);fs(g,lg(g,-w,0,w,0,['#c89a3a','#ffe29a','#b8862e']),.02);g.restore();}
+  glowAt(g,-.48,-2.12,.12,'#f5d58c',.6);
+  /* crash cymbal hatch */
   g.save();g.translate(-.07,-1.77+hatch);g.rotate(-.08);pE(g,0,0,.4,.075);fs(g,lg(g,-.4,0,.4,0,['#c89a3a','#ffe29a','#b8862e']),.03);
   g.strokeStyle='rgba(120,80,20,.45)';g.lineWidth=.015;g.beginPath();g.ellipse(0,0,.27,.05,0,0,TAU);g.stroke();g.beginPath();g.ellipse(0,0,.13,.025,0,0,TAU);g.stroke();circ(g,0,-.02,.03,'#8a6a2a');g.restore();
-  glowAt(g,-.32,-.83,.45,'#6fe6cf',.45);star(g,-.32,-.83,.12,.05,'#b5fff2');
 }
 function chWyrm(g,st){
   const fl=reduceMotion?0:Math.sin(st.t*3.2);
@@ -1215,41 +1234,41 @@ function chJosh(g,st){
   g.strokeStyle='rgba(255,255,255,.7)';g.lineWidth=.014;g.beginPath();for(const sx of[-1,1])for(let w=0;w<3;w++){g.moveTo(sx*.15,hy+.14+w*.03);g.lineTo(sx*.5,hy+.08+w*.07);}g.stroke();
 }
 function chBass(g,st){
-  g.scale(1.28,1.28);
-  const p=1-st.a,hop=st.a>0?Math.sin(Math.min(1,p/.6)*Math.PI)*.6:0;
-  const jk2='#2a1f5c',sk='#e8b88f';
-  legsRig(g,st,'#2a2440','#15101f',.15);
-  g.translate(0,st.bob-hop);
-  armRig(g,-.36,-1.02,offSwing(st)*.5+.25,jk2,sk,null,st);
-  pR(g,-.42,-1.2,.84,.86,.3);fs(g,rg(g,-.05,-.95,.55,'#7a62d0',jk2));
-  g.strokeStyle='rgba(20,15,44,.5)';g.lineWidth=.03;g.beginPath();g.moveTo(-.2,-1.18);g.lineTo(-.28,-.5);g.moveTo(.2,-1.18);g.lineTo(.28,-.5);g.stroke();
-  const pulse=reduceMotion?0:.5+.5*Math.sin(st.t*3.2);
-  glowAt(g,0,-.8,.6,'#b3a6ff',.18+.16*pulse+st.a*.5);
-  circ(g,0,-.8,.25,'#1b1530');g.strokeStyle='#f5d58c';g.lineWidth=.03;g.beginPath();g.arc(0,-.8,.25,0,TAU);g.stroke();
-  const cr=.17*(1+.05*pulse+.14*st.a);pE(g,0,-.8,cr,cr);fs(g,rg(g,0,-.8,cr,'#e4dcff','#5b3fb8'),.02);
-  g.strokeStyle='rgba(20,15,44,.35)';g.lineWidth=.015;g.beginPath();g.arc(0,-.8,cr*.65,0,TAU);g.stroke();
-  circ(g,0,-.8,.055,'#f5d58c');
-  g.fillStyle='#1c1530';g.fillRect(-.4,-.46,.8,.07);circ(g,0,-.425,.045,'#f5d58c');
-  const hy=-1.42;
-  pE(g,0,hy,.25,.24);fs(g,rg(g,-.05,hy-.05,.25,'#ffe0bd','#d49a6c'));
-  g.beginPath();g.moveTo(-.21,hy+.03);g.quadraticCurveTo(-.22,hy+.26,0,hy+.31);g.quadraticCurveTo(.22,hy+.26,.21,hy+.03);g.quadraticCurveTo(.1,hy+.13,0,hy+.11);g.quadraticCurveTo(-.1,hy+.13,-.21,hy+.03);fs(g,'#a8683a',.03);
-  g.strokeStyle='#4a2c18';g.lineWidth=.02;g.beginPath();g.moveTo(-.07,hy+.11);g.quadraticCurveTo(0,hy+.14,.07,hy+.11);g.stroke();
-  face(g,hy-.05,OL,.085);
-  g.beginPath();g.arc(0,hy-.07,.255,Math.PI,0);g.closePath();fs(g,lg(g,0,hy-.32,0,hy-.07,['#3fcab7','#1f7a70']),.035);
-  pR(g,-.27,hy-.12,.54,.09,.04);fs(g,'#2a9d8f',.03);
-  circ(g,0,hy-.34,.07,'#f5d58c');
-  g.strokeStyle='#f5d58c';g.lineWidth=.04;g.beginPath();g.arc(0,hy-.03,.3,Math.PI*1.1,Math.PI*1.9);g.stroke();
-  for(const sx of[-1,1]){pR(g,sx*.28-.065,hy-.1,.13,.18,.05);fs(g,'#5b3fb8',.03);circ(g,sx*.28,hy-.01,.03,'#b3a6ff');}
-  armRig(g,.36,-1.02,swingAng('throw',st),jk2,sk,g2=>{
-    g2.beginPath();g2.ellipse(0,-.05,.2,.27,0,0,TAU);fs(g2,lg(g2,0,-.32,0,.22,['#ff8fb0','#8e2a5a']),.035);
-    g2.beginPath();g2.ellipse(.02,-.12,.12,.13,0,0,TAU);g2.fillStyle='rgba(20,10,30,.35)';g2.fill();
-    pR(g2,-.035,.1,.07,.62,.02);fs(g2,'#5a3a22',.025);
-    pR(g2,-.07,.7,.14,.17,.04);fs(g2,'#2a1f40',.025);
-    for(let k=0;k<2;k++){circ(g2,-.095,.75+k*.07,.024,'#f5d58c');circ(g2,.095,.75+k*.07,.024,'#f5d58c');}
-    g2.strokeStyle='rgba(202,255,245,.85)';g2.lineWidth=.012;g2.beginPath();for(let k=0;k<4;k++){const x=-.024+k*.016;g2.moveTo(x,-.2);g2.lineTo(x,.72);}g2.stroke();
-    glowAt(g2,0,.35,.35,'#6fe6cf',.22);
-    if(st.a>0)glowAt(g2,0,.8,.7,'#b3a6ff',.9*st.a);
-  },st);
+  g.scale(1.32,1.32);
+  const p=1-st.a,hop=st.a>0?Math.sin(Math.min(1,p/.6)*Math.PI)*.55:0,sk='#e9c3a0',jk='#17141d',jk2='#2c2735',hair='#7a3a20',hair2='#b0603a';
+  const sw=st.moving?Math.sin(st.w)*.42:0;
+  g.translate(0,-hop);
+  for(const [x,r] of [[-.09,sw],[.09,-sw]]){g.save();g.translate(x,-.9);g.rotate(r*.8);pR(g,-.07,0,.14,.8,.06);fs(g,lg(g,-.07,0,.07,0,['#2b3048','#3f4766','#252a40']),.035);pR(g,-.09,.74,.22,.13,.05);fs(g,'#0d0b12',.03);g.restore();}
+  g.translate(0,st.bob);
+  /* long hair behind */
+  g.beginPath();g.moveTo(-.2,-1.84);g.bezierCurveTo(-.36,-1.7,-.34,-1.42,-.3,-1.2);g.lineTo(.06,-1.24);g.bezierCurveTo(.12,-1.5,.14,-1.7,.06,-1.86);g.closePath();fs(g,lg(g,0,-1.9,0,-1.2,[hair2,hair]),.03);
+  const longArm=(x,y,ang,item)=>{g.save();g.translate(x,y);g.rotate(ang);pR(g,-.06,-.03,.12,.56,.06);fs(g,lg(g,-.06,0,.06,0,[jk,jk2,jk]));g.translate(0,.53);if(item)item(g);pE(g,0,0,.065,.065);fs(g,sk,.03);g.restore();};
+  longArm(-.2,-1.5,offSwing(st)*.5+.18,null);
+  /* lean torso: black leather jacket */
+  g.beginPath();g.moveTo(-.24,-1.58);g.quadraticCurveTo(-.29,-1.2,-.19,-.86);g.lineTo(.19,-.86);g.quadraticCurveTo(.28,-1.2,.24,-1.58);g.quadraticCurveTo(0,-1.65,-.24,-1.58);fs(g,lg(g,-.2,0,.2,0,[jk,jk2,jk]));
+  g.strokeStyle='rgba(180,170,210,.35)';g.lineWidth=.02;g.beginPath();g.moveTo(.03,-1.58);g.lineTo(.02,-.88);g.moveTo(-.12,-1.56);g.lineTo(-.04,-1.36);g.moveTo(.15,-1.56);g.lineTo(.08,-1.36);g.stroke();
+  g.fillStyle='rgba(255,255,255,.08)';g.fillRect(-.16,-1.5,.05,.5);
+  /* red strap */
+  g.strokeStyle='#c0263a';g.lineWidth=.07;g.beginPath();g.moveTo(-.16,-1.55);g.lineTo(.16,-.98);g.stroke();g.strokeStyle='rgba(255,140,150,.5)';g.lineWidth=.015;g.beginPath();g.moveTo(-.15,-1.52);g.lineTo(.15,-1.0);g.stroke();
+  /* head + hair curtain over the face */
+  const hy=-1.76;
+  pE(g,.02,hy,.17,.2);fs(g,rg(g,0,hy,.2,'#f4d4b4','#d7a882'),.03);
+  pE(g,.06,hy+.17,.07,.04);g.fillStyle='#d9a983';g.fill();
+  g.beginPath();g.moveTo(-.22,hy-.02);g.bezierCurveTo(-.2,hy-.26,.14,hy-.3,.22,hy-.08);g.bezierCurveTo(.25,hy+.06,.2,hy+.14,.18,hy+.3);g.lineTo(.12,hy+.36);g.bezierCurveTo(.1,hy+.16,.08,hy+.06,-.02,hy+.02);g.bezierCurveTo(-.08,hy+.18,-.14,hy+.34,-.2,hy+.46);g.bezierCurveTo(-.26,hy+.2,-.24,hy+.08,-.22,hy-.02);g.closePath();fs(g,lg(g,0,hy-.3,0,hy+.4,[hair2,hair,'#5a2a16']),.03);
+  g.strokeStyle='rgba(240,150,100,.45)';g.lineWidth=.014;g.beginPath();for(let i=0;i<5;i++){const x=-.14+i*.07;g.moveTo(x,hy-.22);g.quadraticCurveTo(x+.04,hy,x+.02+i*.01,hy+.24);}g.stroke();
+  /* bass on the front arm: black sparkle body */
+  longArm(.2,-1.5,swingAng('throw',st),g2=>{
+    g2.beginPath();g2.moveTo(-.16,-.28);g2.quadraticCurveTo(-.26,-.05,-.18,.12);g2.quadraticCurveTo(-.05,.24,.12,.12);g2.quadraticCurveTo(.24,-.02,.15,-.2);g2.quadraticCurveTo(.08,-.3,.02,-.22);g2.quadraticCurveTo(-.06,-.34,-.16,-.28);g2.closePath();
+    fs(g2,rg(g2,-.04,-.1,.3,'#3a3a48','#08080e'),.035);
+    for(let i=0;i<14;i++){const sx=-.17+((i*.37)%1)*.32,sy=-.24+((i*.61)%1)*.36,tw=reduceMotion?.7:.45+.45*Math.abs(Math.sin(st.t*1.3+i*1.7));g2.globalAlpha=tw;circ(g2,sx,sy,.012+(i%3)*.004,i%4?'#e8e8f0':'#9ff7e8');}g2.globalAlpha=1;
+    pR(g2,-.06,-.12,.12,.05,.01);fs(g2,'#c9ccd8',.015);pR(g2,-.05,.02,.1,.04,.01);fs(g2,'#c9ccd8',.015);
+    pR(g2,-.032,.1,.064,.64,.02);fs(g2,'#3a2416',.022);
+    pR(g2,-.065,.72,.13,.18,.04);fs(g2,'#0b0b12',.022);
+    for(let k=0;k<3;k++){circ(g2,-.085,.76+k*.05,.02,'#d8dbe6');circ(g2,.085,.76+k*.05,.02,'#d8dbe6');}
+    g2.strokeStyle='rgba(220,230,255,.8)';g2.lineWidth=.01;g2.beginPath();for(let k=0;k<5;k++){const x=-.024+k*.012;g2.moveTo(x,-.12);g2.lineTo(x,.74);}g2.stroke();
+    glowAt(g2,0,.35,.35,'#b3a6ff',.2);
+    if(st.a>0)glowAt(g2,0,.82,.75,'#b3a6ff',.9*st.a);
+  });
 }
 function iconWave(g,skin){
   const c=skin==='industry'?'#ff9b85':skin==='storm'?'#bfe8ff':'#f5d58c';
@@ -1648,7 +1667,7 @@ let toastTimer=0;
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('on'),1900);}
 function starsHTML(n,total=3){let s='';for(let i=0;i<total;i++)s+=i<n?'★':'<span class="off">★</span>';return s;}
 const slug=t=>String(t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-function track(name,title){try{if(/[?&]dev/.test(location.search)&&!/[?&]trk/.test(location.search))return;const gc=window.goatcounter;if(gc&&gc.count)gc.count({path:'ar-'+name,title:title||name,event:true});}catch(e){}}
+function track(name,title){try{if(localStorage.getItem('skipgc')==='t')return;if(/[?&]dev/.test(location.search)&&!/[?&]trk/.test(location.search))return;const gc=window.goatcounter;if(gc&&gc.count)gc.count({path:'ar-'+name,title:title||name,event:true});}catch(e){}}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-track]');if(a)track(a.dataset.track,a.dataset.title||a.textContent.trim().replace(/\s+/g,' ').slice(0,80));},true);
 function renderLinks(id,label){
   const box=$(id);box.innerHTML='';const list=LINKS.filter(l=>l.url);if(!list.length)return;
@@ -1707,7 +1726,8 @@ function renderGig(){
   bt.addEventListener('click',()=>{Snd.init();Snd.resume();Music.init();Snd.tick();startBoard(gg.i,{daily:gg.tw.id});});
   el.appendChild(bt);
 }
-function renderMap(){npChip();renderGig();syncAudioBtns();
+function cheapestUpgrade(){let m=Infinity;CARD_ORDER.filter(owned).concat(['chord','castle']).forEach(id=>{const u=upOf(id);trackDefs(id).forEach(tr=>{const lv=u[tr.k];if(lv<MAX_LV)m=Math.min(m,TRACK_COST[lv]);});});return m;}
+function renderMap(){npChip();renderGig();syncAudioBtns();{const up=save.dust>=cheapestUpgrade(),bb=$('btn-backstage');bb.classList.toggle('glow',up);bb.textContent=up?'\u2726 Backstage':'Backstage';}
   $('dust-map').textContent='✦ '+save.dust;
   const list=$('stops');list.innerHTML='';
   BOARDS.forEach((b,i)=>{
@@ -1719,6 +1739,7 @@ function renderMap(){npChip();renderGig();syncAudioBtns();
   });
   $('btn-openall').hidden=save.allOpen||BOARDS.every((b,i)=>isOpen(i));
   $('btn-finale').hidden=!save.tourDone;
+  $('conquered').hidden=!BOARDS.every(bb=>save.stars[bb.id]);
   $('tempo-chill').setAttribute('aria-pressed',save.tempo==='chill');
   $('tempo-std').setAttribute('aria-pressed',save.tempo!=='chill');
 }
@@ -1802,7 +1823,7 @@ function openBrief(i){
   $('brief-blurb').textContent=b.blurb;
   const how=b.mode==='lane'?[
     'Tap a card, then tap your side of the river to play it. Resonance refills on its own.',
-    'Big troops like the Drum Tank or Joshzilla soak up castle fire. Send archers or the Comet Dragon right behind them. Your Power Chord charges as you deal damage: tap it, then tap a lane.',
+    'Big troops like the Drum Tank or Joshzilla soak up castle fire. Send archers or Comet Chris right behind them. Your Power Chord charges as you deal damage: tap it, then tap a lane.',
     'Each castle you topple earns a crown. Take their main castle for all three. The last minute is the Encore: double resonance.'
   ]:[
     'Tap one of your golden castles, then tap any island to send the band\'s light there.',
@@ -2956,7 +2977,8 @@ function showFinale(replay){track(replay?'finale-replay':'tour-complete',replay?
   Music.play('title','track-archipelago.mp3',false);
   const total=BOARDS.reduce((a,b)=>a+(save.stars[b.id]||0),0);
   const bonusLeft=BOARDS.filter(b=>b.bonus&&!save.stars[b.id]).length;
-  $('fin-text').textContent='You carried X-Ray Star through the whole tour. The Hush has lifted, the islands are glowing, and every stage in the Aurora Reach is full of music again. Thank you for touring with us.'+(bonusLeft?` ${bonusLeft===1?'One bonus island stop is':'Two bonus island stops are'} still waiting on the tour route if you want more.`:'');
+  $('fin-text').textContent='You carried X-Ray Star through the whole tour. The Hush has lifted, the islands are glowing, and every stage on the tour is full of music again. Thank you for touring with us.'+(bonusLeft?` ${bonusLeft===1?'One bonus island stop is':'Two bonus island stops are'} still waiting on the tour route if you want more.`:' You have conquered every stop! Replay any battle from the tour route to try new strategies.');
+  if(!bonusLeft&&!replay)save.allWon=true;
   $('fin-stats').innerHTML=`<span>\u2605 ${total} / ${BOARDS.length*3} stars</span>`+(replay?'':'<span>\u2726 +200 finale Stardust</span>');
   const list=[{title:BAND_TRACK.title,url:BAND_TRACK.url,where:'Tour map & victories'}].concat(BOARDS.map((b,i)=>BOARD_TRACKS[b.id]?{title:BOARD_TRACKS[b.id].title,url:BOARD_TRACKS[b.id].url,where:ROMAN[i]+' \u00B7 '+b.name}:null).filter(Boolean));
   $('fin-setlist').innerHTML=list.map(t=>`<li><a href="${t.url}" target="_blank" rel="noopener" data-track="song-${slug(t.title)}" data-title="Song: ${t.title} (finale)"><span class="pl">\u25B6</span><b>${t.title}</b><small>${t.where}</small></a></li>`).join('');
@@ -2985,7 +3007,7 @@ function showResult(game){
   save.dust+=dust;
   if(win){
     eyebrow='Victory';
-    title=i===BOARDS.length-1?'The whole Reach is singing':pick(['The songs drift free','The stage lights up again','The crowd is humming along']);
+    title=i===BOARDS.length-1?'The Hush is broken':pick(['The songs drift free','The stage lights up again','The crowd is humming along']);
     text=i===BOARDS.length-1?'The Hush has lifted. Every island, every road and every stage glows with music again. Thanks for touring with X-Ray Star.':`${b.name} is glowing again. ${stars<3?'Replay any time to chase all three stars.':'A perfect show.'}`;
     save.stars[b.id]=Math.max(save.stars[b.id]||0,stars);
     if(game.kind==='conq')save.roundProg[b.id]=0;
@@ -2993,6 +3015,8 @@ function showResult(game){
   }else if(game.winner===2){eyebrow='The Hush holds';title='Quiet, for now';text=`${FOES[b.foe].name} held on this time. Spend your Stardust backstage to level up the band, then try again.`+(game.kind==='conq'&&game.rounds.length>1?` You'll pick up at round ${game.round+1}.`:'');}
   else{eyebrow='Stalemate';title='An even set';text='Neither side gave ground. Level up backstage and play it again to break the tie.';}
   if(gigBonus)text+=` Tonight's Gig bonus: +${gigBonus} Stardust!`;
+  if(win&&!save.allWon&&BOARDS.every(bb=>save.stars[bb.id])){save.allWon=true;eyebrow='Tour conquered';title='You conquered the whole tour!';
+    text='Congratulations! Every stop is won. Replay any battle from the tour route to try different strategies, chase three stars on every stop, max out the band backstage, and play Tonight\'s Gig for daily bonuses.';}
   const joined=CARD_ORDER.filter(t=>owned(t)&&!ownedBefore.includes(t));
   if(joined.length){text+=` New band member: ${joined.map(t=>CARDS[t].name).join(' and ')} joins the tour!`;setTimeout(()=>toast(`${joined.map(t=>CARDS[t].name).join(' and ')} joined the band!`),600);}
   persist();
@@ -3001,9 +3025,14 @@ function showResult(game){
   $('res-reward').textContent=`\u2726 +${dust} Stardust \u00B7 spend it`;
   const box=$('res-buttons');box.innerHTML='';
   const mk=(label,cls,fn)=>{const bt=document.createElement('button');bt.className='btn '+cls;bt.textContent=label;bt.addEventListener('click',()=>{Snd.tick();fn();});box.appendChild(bt);};
-  mk('Backstage','',()=>{G=null;fx=[];setTheme('reach');Snd.startMusic('reach');goBackstage();});
-  mk(win?'Play again':'Try again',win&&i<BOARDS.length-1?'':'primary',()=>startBoard(i,game.daily?{daily:game.daily}:{}));
-  if(win&&i<BOARDS.length-1){
+  const canUp=save.dust>=cheapestUpgrade();
+  mk(canUp?'\u2726 Power up the band':'Backstage',canUp?'glow':'',()=>{G=null;fx=[];setTheme('reach');Snd.startMusic('reach');goBackstage();});
+  mk(win?'Play again':'Try again',win?'':'primary',()=>startBoard(i,game.daily?{daily:game.daily}:{}));
+  const allDone=BOARDS.every(bb=>save.stars[bb.id]);
+  if(win&&allDone)mk('Tour route','primary',goMap);
+  else if(win&&i===BOARDS.length-1){const n=BOARDS.findIndex((bb,k)=>!save.stars[bb.id]&&isOpen(k));
+    if(n>=0)mk('Next: '+BOARDS[n].name,'primary',()=>{goMap();openBrief(n);});else mk('Tour route','primary',goMap);}
+  else if(win){
     let j=i+1;while(j<BOARDS.length&&BOARDS[j].bonus)j++;
     if(BOARDS[i+1].bonus){mk('Bonus stop','',()=>{goMap();openBrief(i+1);});if(j<BOARDS.length)mk('Next battle','primary',()=>{goMap();openBrief(j);});}
     else mk('Next stop','primary',()=>{goMap();openBrief(i+1);});
@@ -3055,7 +3084,7 @@ $('back-done').addEventListener('click',()=>{Snd.tick();goMap();});
 $('btn-reset').addEventListener('click',()=>{Snd.tick();show(['scr-map','scr-reset']);});
 $('reset-no').addEventListener('click',()=>{Snd.tick();show('scr-map');});
 $('reset-yes').addEventListener('click',()=>{track('reset','Reset progress');
-  Object.assign(save,{stars:{},dust:0,lv:{},stageLv:1,allOpen:false,roundProg:{},up:{},unlocked:1,tourDone:false});
+  Object.assign(save,{stars:{},dust:0,lv:{},stageLv:1,allOpen:false,roundProg:{},up:{},unlocked:1,tourDone:false,allWon:false});
   if(save.daily){save.daily.gig=null;save.daily.gigDay='';}
   persist();Snd.tick();show('scr-map');renderMap();window.scrollTo(0,0);$('scr-map').scrollTop=0;toast('A fresh tour begins. Good luck out there!');
 });
@@ -3096,6 +3125,7 @@ window.__auroraSim={
   spawnFoe(type,x,y){if(G&&G.kind==='lane'){const sk=G.board.foe==='hush'?'industry':G.board.foe;deploy(G,2,type,x,y,sk);}},
   audio(){const c=Band.info();return {want:Band.want,band:c?{src:c.src,paused:false,t:c.t,vol:c.vol}:null,failed:Object.keys(Band.failed),synth:!!Music.timer,ac:!!Snd.ac,state:Snd.ac&&Snd.ac.state,timer:!!Music.timer,inten:Music.intensity,t:Snd.ac&&Snd.ac.currentTime};},
   mood(){return G&&G.mood;},
+  portrait(type,sc,an,t){const c=document.createElement('canvas');c.width=c.height=520;const g=c.getContext('2d');g.fillStyle='#1b1740';g.fillRect(0,0,520,520);g.translate(260,470);g.scale(sc,sc);drawChar(g,'band',type,{w:t||0,moving:false,a:an||0,t:1.3,bob:0,flip:1,face:0,team:1});return c.toDataURL();},
   plumeLive(){return fx.some(f=>f.k==='plume'&&f.t>.2&&f.t<.45);},
   fxLive(k,lo,hi){return fx.some(f=>f.k===k&&f.t/f.life>lo&&f.t/f.life<hi);},
   conqSet(f){if(!G||G.kind!=='conq')return;const n=G.nodes.length,k=Math.round(n*f);G.nodes.forEach((x,i)=>{x.o=i<k?1:2;x.count=12;});G.mood=f;},
