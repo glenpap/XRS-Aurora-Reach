@@ -253,6 +253,7 @@ body.wide #conq-top{z-index:3}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<script data-goatcounter="https://glenpap.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
 <canvas id="game" aria-label="Aurora Reach game board"></canvas>
@@ -1646,24 +1647,27 @@ function show(ids){ids=Array.isArray(ids)?ids:[ids];SCREENS.forEach(s=>{$(s).hid
 let toastTimer=0;
 function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('on'),1900);}
 function starsHTML(n,total=3){let s='';for(let i=0;i<total;i++)s+=i<n?'★':'<span class="off">★</span>';return s;}
+const slug=t=>String(t).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function track(name,title){try{if(/[?&]dev/.test(location.search)&&!/[?&]trk/.test(location.search))return;const gc=window.goatcounter;if(gc&&gc.count)gc.count({path:'ar-'+name,title:title||name,event:true});}catch(e){}}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-track]');if(a)track(a.dataset.track,a.dataset.title||a.textContent.trim().replace(/\s+/g,' ').slice(0,80));},true);
 function renderLinks(id,label){
   const box=$(id);box.innerHTML='';const list=LINKS.filter(l=>l.url);if(!list.length)return;
   const lab=document.createElement('div');lab.className='links-label';lab.textContent=label||'Hear the real band';box.appendChild(lab);
   let brk=false;
   list.forEach(l=>{
     if(!l.primary&&!brk){brk=true;const b=document.createElement('div');b.className='links-break';box.appendChild(b);}
-    const a=document.createElement('a');a.href=l.url;a.target='_blank';a.rel='noopener';a.textContent=l.label;if(l.primary)a.className='primary';box.appendChild(a);
+    const a=document.createElement('a');a.href=l.url;a.target='_blank';a.rel='noopener';a.textContent=l.label;a.dataset.track='link-'+slug(l.label);if(l.primary)a.className='primary';box.appendChild(a);
   });
 }
 function isOpen(i){return save.allOpen||i+1<=save.unlocked;}
-function npChip(){const e=$('now-playing');if(!e)return;e.href=BAND_TRACK.url;$('np-title').textContent=BAND_TRACK.title;e.hidden=!Band.ok(BAND_TRACK.src)||save.soundtrack==='game'||save.musicOff;}
+function npChip(){const e=$('now-playing');if(!e)return;e.href=BAND_TRACK.url;e.dataset.track='song-'+slug(BAND_TRACK.title);e.dataset.title='Song: '+BAND_TRACK.title+' (map banner)';$('np-title').textContent=BAND_TRACK.title;e.hidden=!Band.ok(BAND_TRACK.src)||save.soundtrack==='game'||save.musicOff;}
 function musicLabel(){return save.musicOff?'Music off':save.soundtrack==='game'?'Music: game':'Music: band';}
 function cycleMusic(){Snd.init();Music.init();
   if(save.musicOff){save.musicOff=false;save.soundtrack='band';}else if(save.soundtrack!=='game')save.soundtrack='game';else save.musicOff=true;
   persist();Music.setOn(!save.musicOff);Music.refresh();npChip();syncAudioBtns();Snd.tick();
   toast(save.musicOff?'Music off':save.soundtrack==='game'?'Game music: calm synth tunes':'Band music: real X-Ray Star songs where available');}
 function nowPlayingInfo(){const c=Band.cur;if(!c||save.musicOff||save.soundtrack==='game')return null;const f=c.src.split('/').pop();if(f===BAND_TRACK.src)return BAND_TRACK;const id=(f.match(/^track-(.+)\.mp3$/)||[])[1];return id&&BOARD_TRACKS[id]&&BOARD_TRACKS[id].url?BOARD_TRACKS[id]:null;}
-function npPause(){const e=$('np-pause');if(!e)return;const n=nowPlayingInfo();e.hidden=!n;if(n){e.href=n.url;$('np-pause-title').textContent=n.title;}}
+function npPause(){const e=$('np-pause');if(!e)return;const n=nowPlayingInfo();e.hidden=!n;if(n){e.href=n.url;e.dataset.track='song-'+slug(n.title);e.dataset.title='Song: '+n.title+' (pause menu)';$('np-pause-title').textContent=n.title;}}
 const SPK='<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke="none"/>';
 function syncAudioBtns(){npPause();
   document.querySelectorAll('[data-mute]').forEach(b=>{b.classList.toggle('off',!!save.muted);b.setAttribute('aria-label',save.muted?'Unmute':'Mute');b.style.color=save.muted?'#ff9b85':'#efeaff';
@@ -1692,7 +1696,7 @@ function dailyGig(){
 function fanMail(){
   const D=save.daily,today=dayKey();if(D.mailDay===today)return;
   D.streak=D.mailDay===dayKey(new Date(Date.now()-864e5))?(D.streak||0)+1:1;D.mailDay=today;
-  const gift=20+5*Math.min(D.streak-1,6);save.dust+=gift;persist();
+  const gift=20+5*Math.min(D.streak-1,6);save.dust+=gift;persist();track('visit-day-'+Math.min(D.streak,7),'Daily visit, streak day '+(D.streak>=7?'7+':D.streak));
   setTimeout(()=>toast(`Fan mail! +${gift} Stardust · Day ${D.streak} streak`),700);
 }
 function renderGig(){
@@ -1718,7 +1722,9 @@ function renderMap(){npChip();renderGig();syncAudioBtns();
   $('tempo-chill').setAttribute('aria-pressed',save.tempo==='chill');
   $('tempo-std').setAttribute('aria-pressed',save.tempo!=='chill');
 }
-function goMap(){SLOW=0;G=null;fx=[];victory=null;paused=false;setTheme('reach');Snd.startMusic('reach','title');fanMail();renderMap();show('scr-map');}
+const mainDone=()=>BOARDS.every(b=>b.bonus||save.stars[b.id]);
+function goMap(){SLOW=0;G=null;fx=[];victory=null;paused=false;setTheme('reach');Snd.startMusic('reach','title');fanMail();renderMap();show('scr-map');
+  if(!save.tourDone&&mainDone()){save.tourDone=true;save.dust+=200;persist();showFinale(false);}}
 
 let castleIconUrl=null;
 function castleIcon(){
@@ -1776,7 +1782,7 @@ function renderBackstage(){
       b.setAttribute('aria-label',max?`${it.name} ${tr.name} maxed`:`Upgrade ${it.name} ${tr.name} for ${cost} Stardust`);
       b.addEventListener('click',()=>{
         if(max||save.dust<cost)return;save.dust-=cost;
-        const cur=upOf(it.id);cur[tr.k]=lv+1;save.up[it.id]=cur;
+        const cur=upOf(it.id);cur[tr.k]=lv+1;save.up[it.id]=cur;track('upgrade-'+it.id+'-'+slug(tr.name),'Upgrade: '+it.name+' '+tr.name);
         persist();Snd.init();Snd.chime([4,6,8,11],.1,.05);renderBackstage();
       });
       row.appendChild(b);d.appendChild(row);
@@ -1812,7 +1818,7 @@ let G=null,paused=false;
 let lastOpts={};
 function startBoard(i,opts){
   opts=opts||{};lastOpts=opts;syncAudioBtns();
-  const b=BOARDS[i];briefIdx=i;fx=[];victory=null;paused=false;setTheme(b.theme);Snd.startMusic(b.theme,b.mode==='lane'?b.id:'conquest','track-'+b.id+'.mp3');
+  const b=BOARDS[i];briefIdx=i;fx=[];victory=null;paused=false;setTheme(b.theme);track('play-'+b.id,'Played: '+b.name);if(opts.daily)track('gig-start',"Tonight's Gig started");Snd.startMusic(b.theme,b.mode==='lane'?b.id:'conquest','track-'+b.id+'.mp3');
   if(b.mode==='lane'){show('hud-lane');G=makeLane(b,i,{daily:opts.daily});}else{show('hud-conq');G=makeConq(b,i);}
   if(opts.daily){const tw=TWISTS.find(t=>t.id===opts.daily);if(tw)setTimeout(()=>toast(`Tonight's Gig · ${tw.name}: ${tw.desc}`),300);}
   gameResize();
@@ -2929,7 +2935,7 @@ function rewardFor(game,win,stars){
   if(game.kind==='lane')return win?60+20*stars+15*i:20+15*game.crowns[1];
   return win?70+10*stars+15*i:20+3*game.maxHeld;
 }
-function showRoundClear(C){
+function showRoundClear(C){track('round-'+C.board.id+'-'+(C.round+1),'Round '+(C.round+1)+' cleared: '+C.board.name);
   Music.stinger(true);setTimeout(()=>{if(G===C)Music.band(true);},900);
   const b=C.board,i=C.idx,n=C.rounds.length,r=C.round;
   save.roundProg[b.id]=r+1;save.dust+=20;persist();
@@ -2944,15 +2950,16 @@ function showRoundClear(C){
   show(['hud-conq','scr-result']);
 }
 let FIN=null;
-function showFinale(replay){
+function showFinale(replay){track(replay?'finale-replay':'tour-complete',replay?'Watched finale again':'Tour complete!');
   G=null;fx=[];paused=false;setTheme('reach');startVictory();victory.hold=true;
   FIN={t0:T,lan:[],next:0};
   Music.play('title','track-archipelago.mp3',false);
   const total=BOARDS.reduce((a,b)=>a+(save.stars[b.id]||0),0);
-  $('fin-text').textContent='You carried X-Ray Star through all seven stops. The Hush has lifted, the islands are glowing, and every stage in the Aurora Reach is full of music again. Thank you for touring with us.';
+  const bonusLeft=BOARDS.filter(b=>b.bonus&&!save.stars[b.id]).length;
+  $('fin-text').textContent='You carried X-Ray Star through the whole tour. The Hush has lifted, the islands are glowing, and every stage in the Aurora Reach is full of music again. Thank you for touring with us.'+(bonusLeft?` ${bonusLeft===1?'One bonus island stop is':'Two bonus island stops are'} still waiting on the tour route if you want more.`:'');
   $('fin-stats').innerHTML=`<span>\u2605 ${total} / ${BOARDS.length*3} stars</span>`+(replay?'':'<span>\u2726 +200 finale Stardust</span>');
   const list=[{title:BAND_TRACK.title,url:BAND_TRACK.url,where:'Tour map & victories'}].concat(BOARDS.map((b,i)=>BOARD_TRACKS[b.id]?{title:BOARD_TRACKS[b.id].title,url:BOARD_TRACKS[b.id].url,where:ROMAN[i]+' \u00B7 '+b.name}:null).filter(Boolean));
-  $('fin-setlist').innerHTML=list.map(t=>`<li><a href="${t.url}" target="_blank" rel="noopener"><span class="pl">\u25B6</span><b>${t.title}</b><small>${t.where}</small></a></li>`).join('');
+  $('fin-setlist').innerHTML=list.map(t=>`<li><a href="${t.url}" target="_blank" rel="noopener" data-track="song-${slug(t.title)}" data-title="Song: ${t.title} (finale)"><span class="pl">\u25B6</span><b>${t.title}</b><small>${t.where}</small></a></li>`).join('');
   show('scr-finale');Snd.sfx('cheer');Snd.chime([0,4,7,11,14],.16,.06);
 }
 function drawFinale(){
@@ -2971,8 +2978,9 @@ function showResult(game){
   const win=game.winner===1;
   if(game.kind==='lane')stars=win?Math.max(1,game.crowns[1]):0;
   else stars=win?(game.elapsed<200?3:game.elapsed<330?2:1):0;
+  track((win?'won-':game.winner===2?'lost-':'tie-')+b.id,(win?'Won: ':game.winner===2?'Lost: ':'Tie: ')+b.name);
   let dust=rewardFor(game,win,stars),gigBonus=0;
-  if(win&&game.daily&&save.daily.gigDay!==dayKey()){const gg=dailyGig();gigBonus=gg.reward;dust+=gigBonus;save.daily.gigDay=dayKey();}
+  if(win&&game.daily&&save.daily.gigDay!==dayKey()){const gg=dailyGig();gigBonus=gg.reward;dust+=gigBonus;save.daily.gigDay=dayKey();track('gig-won',"Tonight's Gig won");}
   const ownedBefore=CARD_ORDER.filter(owned);
   save.dust+=dust;
   if(win){
@@ -2988,7 +2996,7 @@ function showResult(game){
   const joined=CARD_ORDER.filter(t=>owned(t)&&!ownedBefore.includes(t));
   if(joined.length){text+=` New band member: ${joined.map(t=>CARDS[t].name).join(' and ')} joins the tour!`;setTimeout(()=>toast(`${joined.map(t=>CARDS[t].name).join(' and ')} joined the band!`),600);}
   persist();
-  if(win&&!save.tourDone&&BOARDS.every(bb=>save.stars[bb.id])){save.tourDone=true;save.dust+=200;persist();setTimeout(()=>toast(`\u2726 +${dust} Stardust from the final show`),900);showFinale(false);return;}
+  if(win&&!save.tourDone&&mainDone()){save.tourDone=true;save.dust+=200;persist();setTimeout(()=>toast(`\u2726 +${dust} Stardust from the final show`),900);showFinale(false);return;}
   $('res-eyebrow').textContent=eyebrow;$('res-title').textContent=title;$('res-stars').innerHTML=starsHTML(stars);$('res-text').textContent=text;
   $('res-reward').textContent=`\u2726 +${dust} Stardust \u00B7 spend it`;
   const box=$('res-buttons');box.innerHTML='';
@@ -3029,7 +3037,7 @@ $('pause-restart').addEventListener('click',()=>startBoard(briefIdx,lastOpts));
 $('pause-leave').addEventListener('click',goMap);
 document.querySelectorAll('.send-seg button').forEach(b=>b.addEventListener('click',()=>{if(G&&G.kind==='conq'){G.ratio=+b.dataset.r;updateRatioBtn(G);Snd.tick();}}));
 $('conq-all').addEventListener('click',()=>{if(G&&G.kind==='conq'&&!G.over){G.sel.clear();G.nodes.forEach(n=>{if(n.o===1&&n.count>=1)G.sel.add(n);});Snd.tick();conqHint(G,G.sel.size?'All your castles are ready. Tap where to send the light.':undefined);}});
-$('btn-begin').addEventListener('click',()=>{Snd.init();Snd.resume();Music.init();Snd.chime([2,4,7],.14,.05);goMap();});
+$('btn-begin').addEventListener('click',()=>{if(!track.began){track.began=1;track('begin','Began the tour');}Snd.init();Snd.resume();Music.init();Snd.chime([2,4,7],.14,.05);goMap();});
 $('brief-back').addEventListener('click',()=>{Snd.tick();show('scr-map');});
 $('brief-play').addEventListener('click',()=>{Snd.init();Snd.resume();Snd.tick();startBoard(briefIdx);});
 $('tempo-chill').addEventListener('click',()=>{save.tempo='chill';persist();renderMap();Snd.tick();});
@@ -3046,7 +3054,7 @@ $('res-reward').addEventListener('click',()=>{Snd.tick();G=null;fx=[];victory=nu
 $('back-done').addEventListener('click',()=>{Snd.tick();goMap();});
 $('btn-reset').addEventListener('click',()=>{Snd.tick();show(['scr-map','scr-reset']);});
 $('reset-no').addEventListener('click',()=>{Snd.tick();show('scr-map');});
-$('reset-yes').addEventListener('click',()=>{
+$('reset-yes').addEventListener('click',()=>{track('reset','Reset progress');
   Object.assign(save,{stars:{},dust:0,lv:{},stageLv:1,allOpen:false,roundProg:{},up:{},unlocked:1,tourDone:false});
   if(save.daily){save.daily.gig=null;save.daily.gigDay='';}
   persist();Snd.tick();show('scr-map');renderMap();window.scrollTo(0,0);$('scr-map').scrollTop=0;toast('A fresh tour begins. Good luck out there!');
